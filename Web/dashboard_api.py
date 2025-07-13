@@ -1,3 +1,11 @@
+# KK7NQN Repeater Logger
+# Copyright (C) 2025 Hunter Inman
+#
+# This file is part of the KK7NQN Repeater Logger project.
+# It is licensed under the GNU General Public License v3.0.
+# See the LICENSE file in the root of this repository for full terms.
+
+
 from flask import Flask, jsonify, send_from_directory
 from flask_cors import CORS
 import mysql.connector
