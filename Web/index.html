@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Repeater Dashboard</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/luxon@3/build/global/luxon.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-luxon@1.3.1"></script>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body { background-color: #0d1117; color: #c9d1d9; }
+    .card { background-color: #161b22; border: 1px solid #30363d; }
+    .table { color: #c9d1d9; }
+    h1, h2 { color: #58a6ff; }
+  </style>
+</head>
+<body>
+  <div class="container mt-4">
+    <h1 class="text-center">📡 KK7NQN-R Repeater System Dashboard</h1>
+		<p class="text-center">Join in: 145.1250 -6 110.9 Located North East of Shelton WA</p>
+		<p class="text-center">EchoLink: 275730</p>
+    <!-- Callsign Stats -->
+    <div class="row mt-4">
+      <div class="col-md-6">
+        <div class="card p-3">
+          <h2>Top Callsigns</h2>
+          <table class="table table-sm table-striped">
+            <thead>
+              <tr><th>Callsign</th><th>Seen Count</th><th>Last Seen</th></tr>
+            </thead>
+            <tbody id="callsignTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="col-md-6">
+        <div class="card p-3">
+          <h2>Live Server Stats</h2>
+          <canvas id="systemStatsChart" height="200"></canvas>
+        </div>
+		<div class="card p-3">
+          <h2>Live Repeater Stats</h2>
+          <canvas id="repeaterStatsChart" height="200"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- Individual Temperature Charts -->
+    <div class="row mt-4" id="temperatureCharts"></div>
+	<div class="card p-3">
+            <h2>Temperatures</h2>
+            <canvas id="tempsChart" height="200"></canvas>
+         </div>
+
+<!--
+		<div class="card p-3">
+            <h2>Intake Temp</h2>
+            <canvas id="intakeChart" height="200"></canvas>
+         </div>
+		 <div class="card p-3">
+            <h2>Amplifier Temp</h2>
+            <canvas id="amplifierChart" height="200"></canvas>
+         </div>
+		 <div class="card p-3">
+            <h2>Radio Temp</h2>
+            <canvas id="radioChart" height="200"></canvas>
+         </div>
+		 <div class="card p-3">
+            <h2>Internal Temp</h2>
+            <canvas id="internalChart" height="200"></canvas>
+         </div>
+	-->
+    <!-- Transcriptions Log -->
+    <div class="row mt-4">
+      <div class="col">
+        <div class="card p-3">
+          <h2>Transcription Log</h2>
+          <table class="table table-sm table-hover">
+            <thead>
+              <tr><th>Timestamp</th><th>Callsign</th><th>Transcript</th></tr>
+            </thead>
+            <tbody id="transcriptTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- All Callsigns List -->
+    <div class="row mt-4">
+      <div class="col">
+        <div class="card p-3">
+          <h2>All Known Callsigns</h2>
+          <ul id="allCallsigns" class="list-group list-group-flush"></ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    async function loadDashboard() {
+      const callsigns = await fetch('/api/callsigns').then(r => r.json());
+      const sysStats = await fetch('/api/stats').then(r => r.json());
+	  const repeaterStats = await fetch('/api/repeaterstats').then(r => r.json());
+      const temps = await fetch('/api/temperatures').then(r => r.json());
+	  
+	  const intake_temps = await fetch('/api/intake_temperature').then(r => r.json());
+	  const internal_temps = await fetch('/api/internal_temperature').then(r => r.json());
+	  const amplifier_temps = await fetch('/api/amplifier_temperature').then(r => r.json());
+	  const radio_temps = await fetch('/api/radio_temperature').then(r => r.json());
+	  
+	  
+      const transcripts = await fetch('/api/transcriptions').then(r => r.json());
+
+      const ignored = ['KK7NQN', 'KK7N'];
+      const filteredCallsigns = callsigns.filter(c => !ignored.includes(c.callsign));
+
+      const top10 = filteredCallsigns.sort((a, b) => b.seen_count - a.seen_count).slice(0, 10);
+      const callBody = document.getElementById('callsignTableBody');
+      top10.forEach(row => {
+        callBody.innerHTML += `<tr><td>${row.callsign}</td><td>${row.seen_count}</td><td>${row.last_seen}</td></tr>`;
+      });
+
+      const allList = document.getElementById('allCallsigns');
+      filteredCallsigns.forEach(row => {
+        allList.innerHTML += `<li class="list-group-item bg-transparent text-white">${row.callsign}</li>`;
+      });
+
+      const ctxSys = document.getElementById('systemStatsChart').getContext('2d');
+      new Chart(ctxSys, {
+        type: 'line',
+        data: {
+          labels: sysStats.map(s => s.timestamp),
+          datasets: [
+            { label: 'CPU %', data: sysStats.map(s => s.cpu_usage), borderWidth: 1 },
+            { label: 'Mem %', data: sysStats.map(s => s.memory_usage), borderWidth: 1 },
+            { label: 'CPU °C', data: sysStats.map(s => s.cpu_temp), borderWidth: 1 }
+          ]
+        },
+        options: { scales: { y: { beginAtZero: true } } }
+      });
+	  
+	  const ctxSys2 = document.getElementById('repeaterStatsChart').getContext('2d');
+      new Chart(ctxSys2, {
+        type: 'line',
+        data: {
+          labels: repeaterStats.map(s => s.timestamp),
+          datasets: [
+            { label: 'CPU %', data: repeaterStats.map(s => s.cpu_usage), borderWidth: 1 },
+            { label: 'Mem %', data: repeaterStats.map(s => s.memory_usage), borderWidth: 1 },
+            { label: 'CPU °C', data: repeaterStats.map(s => s.cpu_temp), borderWidth: 1 }
+          ]
+        },
+        options: { scales: { y: { beginAtZero: true } } }
+      });
+	  
+	  const ctxSys0 = document.getElementById('tempsChart').getContext('2d');
+      new Chart(ctxSys0, {
+        type: 'line',
+        data: {
+          labels: intake_temps.map(s => s.timestamp),
+          datasets: [
+            { label: 'Intake Air Temp °F', data: intake_temps.map(s => s.temperature_f), borderWidth: 1 },
+            { label: 'Internal Air Temp °F', data: internal_temps.map(s => s.temperature_f), borderWidth: 1 },
+			{ label: 'Radio Temp °F', data: radio_temps.map(s => s.temperature_f), borderWidth: 1 },
+            { label: 'Amplifier Temp °F', data: amplifier_temps.map(s => s.temperature_f), borderWidth: 1 }
+          ]
+        },
+        options: { scales: { y: { beginAtZero: true } } }
+      });
+	  
+      const sensorLabels = {
+        '28-510500879011': 'Intake Air Temp',
+        '28-4f10d446d493': 'Internal Case Temp',
+        '28-2531d446d51e': 'Amplifier Temp',
+        '28-73e8d4464f3e': 'TX Radio Temp'
+      };
+
+      const transcriptBody = document.getElementById('transcriptTableBody');
+      transcripts.forEach(row => {
+        transcriptBody.innerHTML += `<tr><td>${row.timestamp}</td><td>${row.callsign}</td><td>${row.transcription}</td></tr>`;
+      });
+    }
+
+    loadDashboard();
+  </script>
+</body>
+</html>
