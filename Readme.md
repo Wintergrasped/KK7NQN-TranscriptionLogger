@@ -1,4 +1,4 @@
-
+Live Example setup at https://kk7nqn.net
 ---
 # 📻 SDR Repeater Logger & Transcription System
 
