@@ -1,0 +1,212 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>KK7NQN Repeater Project – API Documentation</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root { --bg:#0b0d10; --fg:#e8eaf0; --muted:#a9b1bd; --card:#141821; --code:#0e1220; --accent:#6ee7ff; --green:#9ae6b4; --orange:#f6ad55; --red:#feb2b2; }
+    html,body { background:var(--bg); color:var(--fg); font-family:system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol"; line-height:1.6; }
+    .wrap { max-width: 980px; margin: 2rem auto; padding: 0 1rem; }
+    h1,h2,h3 { line-height:1.25; }
+    h1 { font-size: 2rem; margin-bottom: .5rem; }
+    h2 { font-size: 1.4rem; margin-top: 2rem; border-top: 1px solid #222835; padding-top: 1rem; }
+    h3 { font-size: 1.1rem; margin-top: 1.25rem; }
+    p { color: var(--fg); }
+    .muted { color: var(--muted); }
+    .card { background: var(--card); border: 1px solid #1d2330; border-radius: 12px; padding: 1rem 1.25rem; margin: 1rem 0; }
+    code, pre { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
+    code { background: #0d1220; color: #d6e1ff; padding: .1rem .35rem; border-radius: 6px; }
+    pre { background: var(--code); color: #d6e1ff; border-radius: 12px; padding: 1rem; overflow:auto; border: 1px solid #1d2330; }
+    kbd { background:#101522; border:1px solid #1d2330; border-bottom-color:#0d1220; border-radius:6px; padding:.1rem .35rem; }
+    .good { color: var(--green); }
+    .warn { color: var(--orange); }
+    .bad  { color: var(--red); }
+    ul { margin: .5rem 0 .75rem 1.3rem; }
+    table { width:100%; border-collapse: collapse; margin:.5rem 0 1rem; }
+    th, td { border:1px solid #1d2330; padding:.5rem .6rem; text-align:left; vertical-align:top; }
+    th { background:#101522; }
+    .grid { display:grid; gap:.75rem; }
+    @media (min-width: 800px) { .grid.cols-2 { grid-template-columns: 1fr 1fr; } }
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    .endpoint { font-weight:600; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>KK7-NQN Repeater Project — API Documentation</h1>
+    <p class="muted">Last updated: <strong><!-- update if you like -->August 8th 2025</strong></p>
+
+    <div class="card">
+      <p>This API serves live data collected by the KK7-NQN logger. All endpoints return <code>application/json; charset=utf-8</code> and support CORS with <code>Access-Control-Allow-Origin: *</code>.</p>
+      <ul>
+        <li><strong>Timezone:</strong> All timestamps are stored and filtered in <code>America/Los_Angeles</code> (local server time; PST/PDT as appropriate).</li>
+        <li><strong>Auth:</strong> None (public read).</li>
+        <li><strong>Rate limits:</strong> Please be respectful. Use <code>limit</code> and time filters to avoid large pulls.</li>
+        <li><strong>Date params:</strong> Accept either <code>YYYY-MM-DD</code> or ISO-8601 (e.g. <code>2025-07-26T21:00:00Z</code>). Date-only expands to local day start/end.</li>
+        <li><strong>Errors:</strong> On failure, endpoints return <code>{"error":"Server error","message":"..."}</code> with HTTP 500.</li>
+        <li><strong>Debugging:</strong> Many endpoints accept <code>debug=1</code> to include a <code>_meta</code> block with effective params/branch.</li>
+      </ul>
+    </div>
+
+    <h2 id="endpoints">Endpoints</h2>
+    <ul>
+      <li><span class="endpoint">https://kk7nqn.net/api/callsign_transcriptions.php</span> — transcripts by callsign or recent transcripts.</li>
+      <li><span class="endpoint">https://kk7nqn.net/api/callsigns_db.php</span> — list/search callsigns with metadata.</li>
+      <li><span class="endpoint">https://kk7nqn.net/api/callsign_log.php</span> — raw mentions from callsign_log.</li>
+    </ul>
+
+    <!-- callsign_transcriptions -->
+    <h2 id="callsign_transcriptions">1) https://kk7nqn.net/api/callsign_transcriptions.php</h2>
+    <p>Returns transcripts. Works in two modes:</p>
+    <ul>
+      <li><strong>Callsign mode:</strong> pass <code>callsign=AB6MB</code>. Default returns one row per transcript with that callsign, with the most recent mention time (<code>last_mentioned_at</code>). Add <code>mentions=1</code> to return every mention (duplicates per transcript).</li>
+      <li><strong>Fallback mode (no callsign):</strong> returns recent transcripts from <code>transcriptions</code>, optionally filtered by date range.</li>
+    </ul>
+
+    <h3>Query Parameters</h3>
+    <table>
+      <thead><tr><th>Param</th><th>Type</th><th>Default</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td><code>callsign</code></td><td>string</td><td>—</td><td>Filter by callsign (case-insensitive). Enables “callsign mode”.</td></tr>
+        <tr><td><code>mentions</code></td><td>0/1</td><td>0</td><td>Only in callsign mode. 1 = return every mention with <code>mentioned_at</code>. 0 = dedup per transcript with <code>last_mentioned_at</code>.</td></tr>
+        <tr><td><code>since</code></td><td>date/datetime</td><td>—</td><td>Filter by local time window start. Accepts <code>YYYY-MM-DD</code> or ISO-8601. Date-only expands to 00:00:00.</td></tr>
+        <tr><td><code>until</code></td><td>date/datetime</td><td>—</td><td>Filter by local time window end. Date-only expands to 23:59:59.</td></tr>
+        <tr><td><code>limit</code></td><td>int</td><td>25</td><td>Number of rows to return (min 1, max 100000). In dedup mode, applied <em>after</em> joining to avoid off-by-one.</td></tr>
+        <tr><td><code>debug</code></td><td>0/1</td><td>0</td><td>Wraps response as <code>{ data: [...], _meta: {...} }</code> for troubleshooting.</td></tr>
+      </tbody>
+    </table>
+
+    <div class="grid cols-2">
+      <div class="card">
+        <h3>Example: dedup by callsign</h3>
+        <pre><code>GET https://kk7nqn.net/api/callsign_transcriptions.php?callsign=AB6MB&amp;limit=3</code></pre>
+        <pre>{
+  "transcript_id": 5039,
+  "filename": "2025-07-26_21-32-03.wav",
+  "transcription": "…",
+  "transcript_timestamp": "2025-07-26 21:38:40",
+  "last_mentioned_at": "2025-07-28 20:50:51"
+}</pre>
+      </div>
+      <div class="card">
+        <h3>Example: mentions mode (every mention)</h3>
+        <pre><code>GET https://kk7nqn.net/api/callsign_transcriptions.php?callsign=AB6MB&amp;mentions=1&amp;limit=5</code></pre>
+        <pre>{
+  "transcript_id": 5039,
+  "filename": "2025-07-26_21-32-03.wav",
+  "transcription": "…",
+  "transcript_timestamp": "2025-07-26 21:38:40",
+  "mentioned_at": "2025-07-28 20:50:51"
+}</pre>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Example: date window (fallback mode)</h3>
+      <pre><code>GET https://kk7nqn.net/api/callsign_transcriptions.php?since=2025-07-26&amp;until=2025-07-26&amp;limit=10</code></pre>
+    </div>
+
+    <h3>cURL &amp; JS</h3>
+    <pre><code># cURL
+curl -s "https://kk7nqn.net/api/callsign_transcriptions.php?callsign=AB6MB&amp;limit=3" | jq .
+
+# JavaScript
+const url = "https://kk7nqn.net/api/callsign_transcriptions.php?callsign=AB6MB&amp;limit=3";
+const rows = await fetch(url).then(r =&gt; r.json());</code></pre>
+
+    <!-- callsigns_db -->
+    <h2 id="callsigns_db">2) https://kk7nqn.net/api/callsigns_db.php</h2>
+    <p>Lists callsigns from the <code>callsign</code> table with metadata (<code>ID, callsign, validated, first_seen, last_seen, seen_count</code>), with search/sort/filter.</p>
+
+    <h3>Query Parameters</h3>
+    <table>
+      <thead><tr><th>Param</th><th>Type</th><th>Default</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td><code>q</code></td><td>string</td><td>—</td><td>Search callsign (case-insensitive). Use with <code>qmode</code>.</td></tr>
+        <tr><td><code>qmode</code></td><td>enum</td><td><code>contains</code></td><td><code>prefix</code> or <code>contains</code>.</td></tr>
+        <tr><td><code>validated</code></td><td>0/1</td><td>—</td><td>Filter by validation flag.</td></tr>
+        <tr><td><code>min_seen</code></td><td>int</td><td>—</td><td>Minimum <code>seen_count</code>.</td></tr>
+        <tr><td><code>since</code>/<code>until</code></td><td>date/datetime</td><td>—</td><td>Filter on <code>last_seen</code> (local time).</td></tr>
+        <tr><td><code>order</code></td><td>enum</td><td><code>last_seen</code></td><td><code>last_seen</code> | <code>first_seen</code> | <code>seen_count</code> | <code>callsign</code>.</td></tr>
+        <tr><td><code>dir</code></td><td>enum</td><td><code>desc</code></td><td><code>asc</code> or <code>desc</code>.</td></tr>
+        <tr><td><code>limit</code></td><td>int</td><td>25</td><td>Number of rows to return (min 1, max 100000).</td></tr>
+        <tr><td><code>debug</code></td><td>0/1</td><td>0</td><td>Include <code>_meta</code> with effective limit &amp; sort.</td></tr>
+      </tbody>
+    </table>
+
+    <div class="grid cols-2">
+      <div class="card">
+        <h3>Example: recent, validated</h3>
+        <pre><code>GET https://kk7nqn.net/api/callsigns_db.php?validated=1&amp;limit=10</code></pre>
+      </div>
+      <div class="card">
+        <h3>Example: prefix search, sort by seen_count</h3>
+        <pre><code>GET https://kk7nqn.net/api/callsigns_db.php?q=KK7&amp;qmode=prefix&amp;order=seen_count&amp;dir=desc&amp;limit=20</code></pre>
+      </div>
+    </div>
+
+    <!-- callsign_log -->
+    <h2 id="callsign_log">3) https://kk7nqn.net/api/callsign_log.php</h2>
+    <p>Raw view of the <code>callsign_log</code> mentions table.</p>
+
+    <h3>Query Parameters</h3>
+    <table>
+      <thead><tr><th>Param</th><th>Type</th><th>Default</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td><code>callsign</code></td><td>string</td><td>—</td><td>Optional exact callsign filter (case-insensitive).</td></tr>
+        <tr><td><code>transcript_id</code></td><td>int</td><td>—</td><td>Optional exact transcript filter.</td></tr>
+        <tr><td><code>since</code>/<code>until</code></td><td>date/datetime</td><td>—</td><td>Filter by <code>callsign_log.timestamp</code> (local time).</td></tr>
+        <tr><td><code>limit</code></td><td>int</td><td>25</td><td>Number of rows to return (min 1, max 100000).</td></tr>
+        <tr><td><code>debug</code></td><td>0/1</td><td>0</td><td>Include <code>_meta</code> with effective limit.</td></tr>
+      </tbody>
+    </table>
+
+    <div class="card">
+      <h3>Example: log slice for a callsign</h3>
+      <pre><code>GET https://kk7nqn.net/api/callsign_log.php?callsign=AB6MB&amp;since=2025-07-26&amp;until=2025-07-27&amp;limit=20</code></pre>
+      <pre>[
+  { "id": 123, "callsign": "AB6MB", "transcript_id": 5039, "timestamp": "2025-07-26 21:38:40" },
+  { "id": 124, "callsign": "AB6MB", "transcript_id": 5037, "timestamp": "2025-07-26 21:34:26" }
+]</pre>
+    </div>
+
+    <h2 id="headers">HTTP &amp; CORS</h2>
+    <div class="card">
+      <pre><code>Content-Type: application/json; charset=utf-8
+Access-Control-Allow-Origin: *
+Access-Control-Allow-Methods: GET, OPTIONS
+Access-Control-Allow-Headers: Content-Type
+Cache-Control: public, max-age=60</code></pre>
+      <p class="muted">Preflight <code>OPTIONS</code> returns <code>204 No Content</code>.</p>
+    </div>
+
+    <h2 id="errors">Errors</h2>
+    <div class="card">
+      <pre>{
+  "error": "Server error",
+  "message": "prepare failed (dedup): ...or other mysqli error..."
+}</pre>
+      <p class="muted">Error responses use HTTP 500 with a short JSON body. Do not rely on the exact message text; it may change.</p>
+    </div>
+
+    <h2 id="examples">Quick Examples</h2>
+    <div class="grid cols-2">
+      <div class="card">
+        <h3>Fetch (Browser / Node)</h3>
+        <pre><code>const qs = new URLSearchParams({ callsign: "AB6MB", limit: "3" });
+const res = await fetch("/api/callsign_transcriptions.php?" + qs.toString());
+const data = await res.json();</code></pre>
+      </div>
+      <div class="card">
+        <h3>cURL</h3>
+        <pre><code>curl -s "https://kk7nqn.net/api/callsigns_db.php?q=KK7&amp;qmode=prefix&amp;order=seen_count&amp;dir=desc&amp;limit=10" | jq .
+curl -s "https://kk7nqn.net/api/callsign_log.php?callsign=AB6MB&amp;limit=5" | jq .</code></pre>
+      </div>
+    </div>
+
+    <p class="muted">Questions or feature requests? Open an issue or ping the maintainer.</p>
+  </div>
+</body>
+</html>

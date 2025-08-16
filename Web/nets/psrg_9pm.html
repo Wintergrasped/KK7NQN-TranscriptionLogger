@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PSRG 9 O'Clock(Pm Edition) Net Report</title>
+  <meta name="description" content="PSRG 9 O'Clock(Pm Edition) Net Control Reports showing top callsigns, mentions, and QSO transcripts from the KK7NQN repeater. Searchable, time-filtered, and always current.">
+  <meta name="keywords" content="ham radio, amateur radio, repeater, net control, KK7NQN, Shelton Washington, callsign QSO transcripts, live reports, AllStarLink">
+  <meta name="author" content="Hunter Inman - KK7NQN">
+  <meta property="og:title" content="PSRG 9 O'Clock(Am Edition) Net Report - KK7NQN Repeater">
+  <meta property="og:description" content="View dynamic reports of top callsigns and real-time repeater activity on the KK7NQN system. Fully transcribed and searchable.">
+  <meta property="og:url" content="https://kk7nqn.net/netcontrol.html">
+  <meta property="og:type" content="website">
+  <meta property="og:image" content="https://kk7nqn.net/static/logo.png">
+  
+<meta name="license" content="GNU General Public License v3.0" />
+
+  
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://kk7nqn.net/netcontrol.html">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/luxon@3/build/global/luxon.min.js"></script>
+  <style>
+    body { background-color: #0d1117; color: #c9d1d9; }
+    .card { background-color: #161b22; border: 1px solid #30363d; margin-bottom: 20px; }
+    h1, h2 { color: #58a6ff; }
+  </style>
+  
+  
+    <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": ["Dataset", "WebAPI"],
+  "name": "KK7NQN Repeater Dashboard & QSO Dataset",
+  "description": "PSRG 9 O'Clock(Am Edition) Net QSO Transcriptions, transcriptions, and call sign metadata from AllStarLink-linked nets. Includes open access Web API for developers and researchers.",
+  "url": "https://kk7nqn.net",
+  "license": "https://kk7nqn.net/license.html",
+  "isAccessibleForFree": true,
+  "keywords": ["ham radio", "repeater", "AllStarLink", "QSO", "transcripts", "callsign", "amateur radio", "net logging", "live API", "open data"],
+  "creator": {
+    "@type": "Person",
+    "name": "KK7NQN",
+    "url": "https://kk7nqn.net/about.html"
+  },
+  "distribution": {
+    "@type": "DataDownload",
+    "encodingFormat": "application/json",
+    "contentUrl": "https://kk7nqn.net/api/"
+  },
+  "documentation": "https://kk7nqn.net/how_to.html",
+  "provider": {
+    "@type": "Organization",
+    "name": "KK7NQN",
+    "url": "https://kk7nqn.net"
+  },
+  "dateModified": "2025-08-05"
+}
+</script>
+  
+  
+  
+</head>
+
+<body>
+<div class="container mt-4">
+  <h1 class="text-center">PSRG 9 O'Clock(Pm Edition) Net Report</h1>
+
+  <div class="card p-3">
+  <p class="text-warning" style="font-size: 0.9em;">
+    <strong>Note:</strong> Transcripts may have inaccuracy. 
+    Callsigns may not be pulled correctly.
+  </p>
+  <p><a href="https://web.psrg.org/net_schedule/">Net Info</a></p>
+</div>
+
+
+  <div class="card p-3">
+    <h2>Top Callsigns</h2>
+    <table class="table table-sm table-striped">
+      <thead><tr><th>Callsign</th><th>Mentions</th></tr></thead>
+      <tbody id="callsignTable"></tbody>
+    </table>
+    <canvas id="callsignChart" height="100"></canvas>
+  </div>
+
+  <div class="card p-3">
+    <h2>Net QSO Transcripts</h2>
+    <ul id="transcriptList" class="list-group list-group-flush"></ul>
+  </div>
+</div>
+
+<script>
+
+  const { DateTime } = luxon;
+  const pacificNow = DateTime.now().setZone('America/Los_Angeles');
+
+  const yyyy = pacificNow.toFormat('yyyy');
+  const mm   = pacificNow.toFormat('MM');
+  const dd   = pacificNow.toFormat('dd');
+
+  const fullDate = `${yyyy}-${mm}-${dd}`;
+
+  console.log("Pacific Date:", fullDate);
+
+
+function loadArchive() {
+  const selected = document.getElementById('archiveDate').value;
+  if (!selected) return alert("Please pick a date.");
+
+  const start = `${selected}T21:00:00`;
+  const end   = `${selected}T22:00:00`;
+  fetchReport(start, end);
+}
+
+const start = `${yyyy}-${mm}-${dd}T21:00:00`;
+const end   = `${yyyy}-${mm}-${dd}T22:30:00`;
+window.onload = fetchReport(start, end);
+
+function fetchReport(startTime = start, endTime = end) {
+  fetch(`/api/netreport.php?start=${start}&end=${end}`)
+    .then(res => res.json())
+    .then(data => {
+      const callsignTable = document.getElementById('callsignTable');
+      callsignTable.innerHTML = '';
+      const transcriptList = document.getElementById('transcriptList');
+      transcriptList.innerHTML = '';
+
+      if (data.call_signs) {
+        data.call_signs.forEach(cs => {
+          callsignTable.innerHTML += `<tr><td>${cs.callsign}</td><td>${cs.mentions}</td></tr>`;
+        });
+
+        const ctx = document.getElementById('callsignChart').getContext('2d');
+        new Chart(ctx, {
+          type: 'bar',
+          data: {
+            labels: data.call_signs.map(cs => cs.callsign),
+            datasets: [{
+              label: 'Mentions',
+              data: data.call_signs.map(cs => cs.mentions),
+              backgroundColor: '#58a6ff'
+            }]
+          },
+          options: { scales: { y: { beginAtZero: true } } }
+        });
+      }
+
+      if (data.transcripts) {
+        data.transcripts.forEach(t => {
+          const li = document.createElement('li');
+          li.className = "list-group-item bg-transparent text-white";
+          li.innerText = `${t.timestamp} - ${t.transcription}`;
+          transcriptList.appendChild(li);
+        });
+      }
+    });
+}
+
+
+
+function fetchReport() {
+
+  if (!start || !end) return alert('Net hasnt happened yet or not found');
+
+  fetch(`/api/netreport.php?start=${start}&end=${end}`)
+    .then(res => res.json())
+    .then(data => {
+      const callsignTable = document.getElementById('callsignTable');
+      callsignTable.innerHTML = '';
+      const transcriptList = document.getElementById('transcriptList');
+      transcriptList.innerHTML = '';
+
+      if (data.call_signs) {
+        data.call_signs.forEach(cs => {
+          callsignTable.innerHTML += `<tr><td>${cs.callsign}</td><td>${cs.mentions}</td></tr>`;
+        });
+
+        const ctx = document.getElementById('callsignChart').getContext('2d');
+        new Chart(ctx, {
+          type: 'bar',
+          data: {
+            labels: data.call_signs.map(cs => cs.callsign),
+            datasets: [{
+              label: 'Mentions',
+              data: data.call_signs.map(cs => cs.mentions),
+              backgroundColor: '#58a6ff'
+            }]
+          },
+          options: { scales: { y: { beginAtZero: true } } }
+        });
+      }
+
+      if (data.transcripts) {
+        data.transcripts.forEach(t => {
+          const li = document.createElement('li');
+          li.className = "list-group-item bg-transparent text-white";
+          li.innerText = `${t.timestamp} - ${t.transcription}`;
+          transcriptList.appendChild(li);
+        });
+      }
+    });
+}
+
+
+</script>
+
+<script>
+
+  // JSON-LD schema update
+  const schemaTag = document.querySelector('script[type="application/ld+json"]');
+  const schema = JSON.parse(schemaTag.textContent);
+  schema.dateModified = `${yyyy}-${mm}-${dd}`;
+  schemaTag.textContent = JSON.stringify(schema, null, 2);
+
+  // og:updated_time if used
+  const ogTime = document.querySelector('meta[property="og\\:updated_time"]');
+  if (ogTime) {
+    ogTime.setAttribute('content', `${yyyy}-${mm}-${dd}T00:00:00Z`);
+  }
+</script>
+
+
+<div class="card p-3 mt-4">
+  <h2>Archive</h2>
+  <p>Select a date to view past net transcripts:</p>
+  <input type="date" id="archiveDate" class="form-control mb-2">
+  <button class="btn btn-secondary" onclick="loadArchive()">Load Archive</button>
+</div>
+</body>
+<footer class="text-center mt-5 py-3 border-top" style="color:#8b949e;">
+  <p>
+    🛰️ This project is licensed under the 
+    <a href="license.html" class="text-decoration-none" style="color:#58a6ff;">GNU GPL v3.0</a>.<br />
+    All data is open-access, bot-friendly, and free for public use. Use it. Build with it. Improve ham radio.
+  </p>
+</footer>
+
+</html>

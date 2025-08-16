@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Callsign Details</title>
+
+<!-- Meta Tags for SEO and Bots -->
+<meta name="description" content="Real-time log page for amateur radio callsigns heard by KK7NQN repeater. Includes QSO stats, QSO transcripts, activity chart, and badges." />
+<meta name="keywords" content="ham radio, amateur radio, callsign, KK7NQN, repeater, QSO log, QSO transcripts, net control, Shelton Washington, AllStarLink, 223.240 MHz, RF dashboard" />
+<meta name="robots" content="index, follow" />
+<meta name="author" content="Hunter Inman, KK7NQN" />
+<meta property="og:title" content="Callsign Activity - KK7NQN Repeater" />
+<meta property="og:description" content="Activity logs, stats, and QSO transcripts for amateur radio callsigns heard by KK7NQN's public-use repeater in Shelton, WA." />
+<meta property="og:url" content="https://kk7nqn.net/callsign.html" />
+<meta property="og:type" content="website" />
+<meta property="og:image" content="https://kk7nqn.net/assets/logo.png" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="KK7NQN Repeater Callsign Stats" />
+<meta name="twitter:description" content="Live stats and QSO logs for hams heard on the KK7NQN repeater." />
+
+<meta name="license" content="GNU General Public License v3.0" />
+
+<!-- Bot-friendly notice -->
+<meta name="googlebot" content="index, follow" />
+<meta name="Bingbot" content="index, follow" />
+<meta name="GPTBot" content="index, follow" />
+
+
+<link rel="canonical" href="https://kk7nqn.net/callsign.html" />
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+  body { background-color: #0d1117; color: #c9d1d9; }
+  .card { background-color: #161b22; border: 1px solid #30363d; margin-bottom: 20px; color: #ffffff; }
+  h1, h2 { color: #58a6ff; }
+  .badge-section p { color: #f0f6fc; font-size: 1.1em; }
+</style>
+
+
+<script type="application/ld+json" id="dynamicSchema"></script>
+<script>
+  const callsignSchemaUpdater = async () => {
+    const params = new URLSearchParams(window.location.search);
+    const callsign = params.get('cs');
+    if (!callsign) return;
+
+    try {
+      const res = await fetch(`/api/callsign.php?cs=${callsign}`);
+      const data = await res.json();
+      if (!data.summary) return;
+
+      const schema = {
+        "@context": "https://schema.org",
+        "@type": "Dataset",
+        "name": `Callsign Log: ${callsign}`,
+        "description": `Activity, QSO statistics, and transcript data for amateur radio callsign ${callsign} as logged by the KK7NQN repeater system.`,
+        "url": `https://kk7nqn.net/callsign.html?cs=${callsign}`,
+        "license": "https://kk7nqn.net/license.html",
+        "creator": {
+          "@type": "Person",
+          "name": "Hunter Inman, KK7NQN"
+        },
+        "dateModified": data.summary.last_seen
+      };
+
+      document.getElementById("dynamicSchema").textContent = JSON.stringify(schema, null, 2);
+    } catch (e) {
+      console.error("Schema generation failed:", e);
+    }
+  };
+
+  callsignSchemaUpdater();
+
+  if (callsign) {
+    const canonical = document.createElement("link");
+    canonical.setAttribute("rel", "canonical");
+    canonical.setAttribute("href", `https://kk7nqn.net/callsign.html?cs=${callsign}`);
+    document.head.appendChild(canonical);
+  } else {
+    const canonical = document.createElement("link");
+    canonical.setAttribute("rel", "canonical");
+    canonical.setAttribute("href", "https://kk7nqn.net/callsign.html");
+    document.head.appendChild(canonical);
+  }
+</script>
+
+
+
+
+
+</head>
+<body>
+<div class="container mt-4">
+  <h1 id="callsignHeader" class="text-center">Callsign Details</h1>
+  	<ul class="nav nav-tabs justify-content-center mb-4">
+  <li class="nav-item">
+    <a class="nav-link text-white" href="index.html">Dashboard</a>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link text-white" href="netcontrol.html">Net Control</a>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link text-white" href="schedule.html">Schedule</a>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link text-white" href="about.html">About</a>
+  </li>
+</ul>
+
+  <div class="card p-3">
+    <h2>Stats</h2>
+    <p><strong>First Seen:</strong> <span id="firstSeen"></span></p>
+    <p><strong>Last Seen:</strong> <span id="lastSeen"></span></p>
+    <p><strong>Total Mentions:</strong> <span id="seenCount"></span></p>
+  </div>
+  
+  <div class="card p-3">
+  <h2>QSO Stats (Estimated)</h2>
+  <p><strong>Total QSOs:</strong> <span id="totalQSOs"></span></p>
+  <p><strong>Average Duration:</strong> <span id="avgDuration"></span></p>
+  <p><strong>Longest QSO:</strong> <span id="longestQSO"></span></p>
+  <p><strong>Shortest QSO:</strong> <span id="shortestQSO"></span></p>
+  <p><strong>Total Talk Time:</strong> <span id="totalTalkTime"></span></p>
+</div>
+
+<div class="card p-3">
+  <h2>Badges</h2>
+  <div id="badgeContainer" class="d-flex flex-wrap gap-2"></div>
+</div>
+
+
+
+  <div class="card p-3">
+    <h2>Activity</h2>
+    <canvas id="activityChart" height="100"></canvas>
+  </div>
+
+  <div class="card p-3">
+    <h2>Recent QSO Transcripts</h2>
+    <ul id="transcriptList" class="list-group list-group-flush"></ul>
+  </div>
+
+</div>
+<script>
+  const cs = new URLSearchParams(window.location.search).get("cs");
+  if (cs) {
+    const canonical = document.createElement("link");
+    canonical.rel = "canonical";
+    canonical.href = `https://kk7nqn.net/callsign.html?cs=${cs}`;
+    document.head.appendChild(canonical);
+  }
+</script>
+
+<script>
+const params = new URLSearchParams(window.location.search);
+const callsign = params.get('cs');
+
+if (!callsign) {
+  document.body.innerHTML = '<h1 style="color:white;text-align:center;">No callsign specified</h1>';
+} else {
+  document.getElementById('callsignHeader').innerText = callsign;
+
+  fetch(`/api/callsign.php?cs=${callsign}`)
+    .then(res => res.json())
+    .then(data => {
+      if (!data.summary) {
+        document.body.innerHTML = '<h1 style="color:white;text-align:center;">Callsign not found</h1>';
+        return;
+      }
+      document.getElementById('firstSeen').innerText = data.summary.first_seen;
+      document.getElementById('lastSeen').innerText = data.summary.last_seen;
+      document.getElementById('seenCount').innerText = data.summary.seen_count;
+	  
+	  function formatSeconds(seconds) {
+		const mins = Math.floor(seconds / 60);
+		const secs = Math.floor(seconds % 60);
+		return `${mins}m ${secs}s`;
+		}
+
+		const qso = data.qso_stats;
+		document.getElementById('totalQSOs').innerText = qso.total_qsos;
+		document.getElementById('avgDuration').innerText = formatSeconds(qso.avg_duration);
+		document.getElementById('longestQSO').innerText = formatSeconds(qso.longest_qso);
+		document.getElementById('shortestQSO').innerText = formatSeconds(qso.shortest_qso);
+		document.getElementById('totalTalkTime').innerText = formatSeconds(qso.total_talk_time);
+
+
+      // Populate recent transcripts
+      const list = document.getElementById('transcriptList');
+      data.logs.forEach(log => {
+        const li = document.createElement('li');
+        li.className = "list-group-item bg-transparent text-white";
+        li.innerText = `${log.timestamp} - ${log.transcription}`;
+        list.appendChild(li);
+      });
+
+      // Chart for activity
+      const ctx = document.getElementById('activityChart').getContext('2d');
+      new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: data.activity.map(a => a.date),
+          datasets: [{
+            label: 'Mentions',
+            data: data.activity.map(a => a.count),
+            borderColor: '#58a6ff',
+            borderWidth: 2
+          }]
+        },
+        options: { scales: { y: { beginAtZero: true } } }
+      });
+	  
+	  
+	  const badgeContainer = document.getElementById('badgeContainer');
+data.badges.forEach(badge => {
+  const img = document.createElement('img');
+  img.src = badge.img;
+  img.alt = badge.name;
+  img.title = badge.name;
+  img.style.width = '64px';
+  img.style.height = '64px';
+  img.style.borderRadius = '8px';
+  img.style.border = '1px solid #30363d';
+  badgeContainer.appendChild(img);
+});
+
+	  
+    });
+}
+</script>
+</body>
+<footer class="text-center mt-5 py-3 border-top" style="color:#8b949e;">
+  <p>
+    🛰️ This project is licensed under the 
+    <a href="license.html" class="text-decoration-none" style="color:#58a6ff;">GNU GPL v3.0</a>.<br />
+    All data is open-access, bot-friendly, and free for public use. Use it. Build with it. Improve ham radio.
+  </p>
+</footer>
+
+</html>

@@ -1,27 +1,19 @@
 #!/usr/bin/env python3
 
-# KK7NQN Repeater Logger
-# Copyright (C) 2025 Hunter Inman
-#
-# This file is part of the KK7NQN Repeater Logger project.
-# It is licensed under the GNU General Public License v3.0.
-# See the LICENSE file in the root of this repository for full terms.
-
-
 import psutil
 import mysql.connector
 from datetime import datetime
 import socket
 import os
 
-DEVICE_NAME = socket.gethostname()  # or 'MiniPC' / 'RepeaterPi' hardcoded if you prefer
+DEVICE_NAME = 'DEVICE_NAME'  # or 'MiniPC' / 'RepeaterPi' hardcoded if you prefer
 
 # MySQL config
 DB_CONFIG = {
-    'host': '192.168.0.128',
-    'user': 'repeateruser',
-    'password': 'changeme123',
-    'database': 'repeater'
+    'host': 'IP / HOSTNAME',
+    'user': 'USERNAME',
+    'password': 'PASSWORD',
+    'database': 'DATABSE NAME'
 }
 
 def get_cpu_temp():

@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Net Logs & QSO Transcripts | KK7NQN Repeater Project</title>
+
+  <meta name="description" content="Explore daily ham radio net transcripts from the KK7NQN repeater project, including PSRG, Cowabunga, and Worldwide Friendship Nets." />
+  <meta name="keywords" content="ham radio net transcripts, QSO transcripts, PSRG net, Cowabunga net, DoDropIn, Fireside, amateur radio logs" />
+  <meta name="robots" content="index, follow" />
+  <link rel="canonical" href="https://kk7nqn.net/nets.html" />
+
+  <meta name="author" content="Hunter Inman (KK7NQN)" />
+  <meta name="license" content="GNU General Public License v3.0" />
+
+  <meta property="og:title" content="Net Logs & Transcripts - KK7NQN Repeater" />
+  <meta property="og:description" content="Live and archived ham radio net logs from the KK7NQN AllStar repeater system, including check-ins and full QSO transcriptions." />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://kk7nqn.net/nets.html" />
+
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <style>
+    body { background-color: #0d1117; color: #c9d1d9; }
+    .card { background-color: #161b22; border: 1px solid #30363d; color: #c9d1d9;}
+    h1, h2 { color: #58a6ff; }
+    a { color: #58a6ff; }
+  </style>
+
+  <script type="application/ld+json" id="schema-net-data"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const today = new Date().toISOString().split("T")[0];
+      const schema = {
+        "@context": "https://schema.org",
+        "@type": ["Dataset", "WebAPI"],
+        "name": "KK7NQN Net QSO Transcripts",
+        "description": "Live and archived net-based QSO transcripts and metadata, including PSRG, Cowabunga, and Fireside nets. Accessible via web and API.",
+        "url": "https://kk7nqn.net/nets.html",
+        "license": "https://kk7nqn.net/license.html",
+        "isAccessibleForFree": true,
+        "keywords": ["ham radio", "net transcripts", "AllStarLink", "PSRG", "DoDropIn", "Fireside", "QSO log", "open data", "repeater dashboard"],
+        "creator": {
+          "@type": "Person",
+          "name": "KK7NQN",
+          "url": "https://kk7nqn.net/about.html"
+        },
+        "provider": {
+          "@type": "Organization",
+          "name": "KK7NQN",
+          "url": "https://kk7nqn.net"
+        },
+        "distribution": {
+          "@type": "DataDownload",
+          "encodingFormat": "application/json",
+          "contentUrl": "https://kk7nqn.net/api/"
+        },
+        "documentation": "https://kk7nqn.net/how_to.html",
+        "dateModified": "2025-08-05"
+      };
+      document.getElementById("schema-net-data").textContent = JSON.stringify(schema, null, 2);
+    });
+  </script>
+</head>
+
+<body>
+  <div class="container mt-4">
+    <h1 class="text-center">🛰️ Ham Radio Net Logs & QSO Transcripts</h1>
+<ul class="nav nav-tabs justify-content-center mb-4">
+  <li class="nav-item">
+    <a class="nav-link text-white" href="https://kk7nqn.net/index.html">Dashboard</a>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link text-white" href="https://kk7nqn.net/netcontrol.html">Net Control</a>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link active bg-dark text-white" href="/nets/info.html">Nets</a>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link text-white" href="https://kk7nqn.net/schedule.html">Schedule</a>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link text-white" href="https://kk7nqn.net/about.html">About</a>
+  </li>
+  <li class="nav-item">
+        <a class="nav-link text-white" href="https://kk7nqn.net/how_to.html">How To</a>
+  </li>
+</ul>
+    <p class="text-center mb-4">
+      Automatically logged and transcribed nets from the KK7NQN repeater system. All data is updated in near real-time, indexed, and searchable.
+    </p>
+
+    <div class="card p-4 mb-4">
+      <h2>🏷️ Featured Daily Nets</h2>
+      <ul>
+        <li><a href="/nets/psrg_9am.html">PSRG 9AM Net</a></li>
+        <li><a href="/nets/psrg_noon.html">PSRG Noon Net</a></li>
+        <li><a href="/nets/psrg_9pm.html">PSRG 9PM Net</a></li>
+        <li><a href="/nets/kowabunga.html">Kowabunga Net (DoDropIn)</a></li>
+        <li><a href="/nets/worldwide_friendship.html">Worldwide Friendship Net (DoDropIn)</a></li>
+      </ul>
+    </div>
+
+    <div class="card p-4 mb-5">
+      <h2>💡 About This Project</h2>
+      <p>This net logging and transcript system is part of the <a href="/about.html">KK7NQN AllStar repeater project</a>. All net data is processed with Whisper AI and publicly accessible for use by hams, net controls, researchers, and developers.</p>
+    </div>
+  </div>
+
+  <footer class="text-center mt-5 py-3 border-top" style="color:#8b949e;">
+    <p>
+      📡 Licensed under <a href="license.html" class="text-decoration-none" style="color:#58a6ff;">GNU GPL v3.0</a>. Data is open-access and bot-friendly.
+    </p>
+  </footer>
+</body>
+</html>

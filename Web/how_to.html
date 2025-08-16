@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>About KK7NQN Repeater Project</title>
+
+  <!-- SEO Meta -->
+  <meta name="description" content="Learn about the KK7NQN AllStar repeater project in Shelton, Washington. Discover its technical specs, features, live dashboard, call logging, and transcription tools for amateur radio operators." />
+  <meta name="keywords" content="KK7NQN, repeater, ham radio, amateur radio, AllStar, Whisper, transcription, Shelton, Washington, callsign, dashboard, net control" />
+  <meta name="robots" content="index, follow" />
+  <link rel="canonical" href="https://kk7nqn.net/about.html" />
+
+  <!-- Open Graph Meta for social sharing -->
+  <meta property="og:title" content="About the KK7NQN Repeater System" />
+  <meta property="og:description" content="Technical overview and purpose of the KK7NQN repeater project including call logging, transcription, and dashboard tools." />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://kk7nqn.net/about.html" />
+
+<!-- SEO & Open Data Meta -->
+<meta name="author" content="Hunter Inman (KK7NQN)" />
+<meta name="license" content="GNU General Public License v3.0" />
+
+
+
+  <!-- Style and Bootstrap -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body { background-color: #0d1117; color: #c9d1d9; }
+    .card { background-color: #161b22; border: 1px solid #30363d; color: #c9d1d9;}
+    .table { color: #c9d1d9; }
+    h1, h2 { color: #58a6ff; }
+    p { color: #c9d1d9; }
+  </style>
+  
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": ["Dataset", "WebAPI"],
+  "name": "KK7NQN Repeater Dashboard & QSO Dataset",
+  "description": "A live-updating dataset of ham radio QSOs, transcriptions, and call sign metadata from AllStarLink-linked nets. Includes open access Web API for developers and researchers.",
+  "url": "https://kk7nqn.net",
+  "license": "https://kk7nqn.net/license.html",
+  "isAccessibleForFree": true,
+  "keywords": ["ham radio", "repeater", "AllStarLink", "QSO", "transcripts", "callsign", "amateur radio", "net logging", "live API", "open data"],
+  "creator": {
+    "@type": "Person",
+    "name": "KK7NQN",
+    "url": "https://kk7nqn.net/about.html"
+  },
+  "distribution": {
+    "@type": "DataDownload",
+    "encodingFormat": "application/json",
+    "contentUrl": "https://kk7nqn.net/api/"
+  },
+  "documentation": "https://kk7nqn.net/how_to.html",
+  "provider": {
+    "@type": "Organization",
+    "name": "KK7NQN",
+    "url": "https://kk7nqn.net"
+  },
+  "dateModified": "2025-08-04"
+}
+</script>
+
+
+  
+</head>
+<body>
+  <div class="container mt-4">
+    <h1 class="text-center">📡 About the KK7NQN Repeater System</h1>
+
+    <ul class="nav nav-tabs justify-content-center mb-4">
+      <li class="nav-item">
+        <a class="nav-link text-white" href="index.html">Dashboard</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link text-white" href="netcontrol.html">Net Control</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link text-white" href="schedule.html">Schedule</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link active bg-dark text-white" href="about.html">About</a>
+      </li>
+    </ul>
+
+    <div class="card p-4 mb-5">
+      <main>
+      <section>
+        <h2>Quick Start</h2>
+        <p>Welcome to the KK7NQN Repeater Dashboard system! Whether you're just browsing or running a net, this guide will help you get the most out of it.</p>
+      </section>
+
+      <section>
+        <h2>General Users</h2>
+        <ul>
+          <li><strong>Live Dashboard:</strong> Visit the main dashboard to see live data. It updates every 2 minutes. Just refresh the page manually to get the latest info.</li>
+          <li><strong>Call Sign List:</strong> Scroll to the bottom of the main dashboard to see a complete list of all call signs we've seen.</li>
+          <li><strong>Search:</strong> Use the search bar just above the call sign list to find a specific call sign.</li>
+          <li><strong>Click for Details:</strong> Clicking on any call sign (in the leaderboard, the list, or search results) will bring up a detailed page showing all logs and transcripts for that call sign.</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>NetControl Operators</h2>
+        <ul>
+          <li><strong>NetControl Tab:</strong> Head to the <a href="netcontrol.html">NetControl</a> tab.</li>
+          <li><strong>Date-Time Search:</strong> Enter a start and end time for the net you're running.</li>
+          <li><strong>Call Sign Summary:</strong> The page will show all call signs heard during that timeframe, including how many times each was seen.</li>
+          <li><strong>Transcripts:</strong> Below the list is a transcript log showing everything said on the repeater during the selected time.</li>
+          <li><strong>Delays:</strong> During very busy nets, transcripts may be delayed by up to an hour, so please be patient.</li>
+        </ul>
+      </section>
+	  
+	  <section>
+        <h2>Developers API</h2>
+        <ul>
+          <li><strong>API</strong> Head to the <a href="/api/">API</a> to view avalible API's</li>
+		  <li><strong>API Docs</strong> Head to the <a href="/docs.html">Docs</a> page to view API Documentation</li>
+          <li><strong>All of the listed API's dump ALL of the associative Data from their respective databse in raw JSON format.</li>
+          <li><strong>kk7nqn.net/api/transcriptions.php</strong> Lists Transcriptions with ID, FileName, TimeStamp, CreatedTime, Processed (1 or 0)(Inidicating if it has been searched for callsigns) and the actual transcription.</li>
+          <li><strong>kk7nqn.net/api/callsigns.php</strong> Lists all the Callsigns we have seen with ID, callsign, validated(1 or 0), first_seen, last_seen and seen_count</li>
+          <li><strong>kk7nqn.net/api/callsign.php?cs={CallSign}</strong> Lists all the data we have on a given callsign summary including the data from callsigns.php and logs that lists all the transcripts the server thinks it seen that call sign in.</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>Notes & Tips</h2>
+        <ul>
+          <li>Transcripts are auto-generated via Whisper and may occasionally have funny errors—enjoy the occasional laugh!</li>
+          <li>All public data is read-only and safe to share. Bots and crawlers are welcome to index the pages.</li>
+          <li>We're always improving. Suggestions are welcome via the contact page or feedback form (coming soon).</li>
+        </ul>
+      </section>
+    </main>
+    </div>
+  </div>
+</body>
+    <footer class="text-center mt-5 py-3 border-top" style="color:#8b949e;">
+  <p>
+    🛰️ This project is licensed under the 
+    <a href="license.html" class="text-decoration-none" style="color:#58a6ff;">GNU GPL v3.0</a>.<br />
+    All data is open-access, bot-friendly, and free for public use. Use it. Build with it. Improve ham radio.
+  </p>
+</footer>
+
+</html>

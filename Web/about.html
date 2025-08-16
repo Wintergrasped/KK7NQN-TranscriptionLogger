@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>About KK7NQN Repeater & Transcriber (TSN)</title>
+
+  <!-- SEO Meta -->
+  <meta name="description" content="Learn the difference between the KK7NQN Repeater dashboard and the Transcriber Service Node (TSN): two complementary systems with different purposes, datasets, and policies." />
+  <meta name="keywords" content="KK7NQN, repeater, ham radio, amateur radio, AllStarLink, transcription, TSN, dashboard, dataset, API" />
+  <meta name="robots" content="index, follow" />
+  <link rel="canonical" href="https://kk7nqn.net/about.html" />
+  <meta name="author" content="Hunter Inman (KK7NQN)" />
+  <meta name="license" content="GNU General Public License v3.0" />
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="About the KK7NQN Repeater & TSN" />
+  <meta property="og:description" content="Technical overview of the KK7NQN Repeater dashboard and the TSN (Transcriber Service Node), including purpose, policy, and data access." />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://kk7nqn.net/about.html" />
+
+  <!-- Styles -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    :root { --bg:#0d1117; --card:#161b22; --border:#30363d; --text:#c9d1d9; --muted:#8b949e; --link:#58a6ff; --accent:#1f6feb; }
+    body { background-color: var(--bg); color: var(--text); }
+    .card { background-color: var(--card); border: 1px solid var(--border); color: var(--text); }
+    .table { color: var(--text); }
+    h1, h2 { color: var(--link); }
+    a { color: var(--link); }
+    .badge-pill { border-radius: 999px; padding: .35rem .6rem; font-size: .75rem; }
+    .badge-ctx { background: #111827; color: #fff; }
+    .lead-sm { color: var(--muted); }
+    .kicker { text-transform: uppercase; letter-spacing: .08em; font-weight: 600; color: var(--muted); }
+    .codeish { font-family: ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace; font-size: .95rem; }
+    .table thead th { color: var(--muted); border-bottom-color: var(--border); }
+    .table td, .table th { border-color: var(--border); }
+    .callout { border-left: 3px solid var(--accent); padding-left: 1rem; }
+    .anchor-list a { text-decoration: none; }
+  </style>
+
+  <!-- Structured Data -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "name": "KK7NQN Repeater & TSN",
+    "url": "https://kk7nqn.net/",
+    "copyrightHolder": {"@type":"Person","name":"KK7NQN"},
+    "hasPart": [
+      {
+        "@type": ["Dataset","WebAPI"],
+        "name": "KK7NQN Repeater Dataset",
+        "description": "Live node activity, callsign analytics, and repeater health.",
+        "url": "https://kk7nqn.net/",
+        "isAccessibleForFree": true,
+        "license": "https://kk7nqn.net/license.html"
+      },
+      {
+        "@type": ["Dataset","WebAPI"],
+        "name": "KK7NQN Transcriber Service Node (TSN) Dataset",
+        "description": "Real‑time QSO transcriptions. TSN is receive‑only for text; it does not transmit RF or link to external voice networks.",
+        "url": "https://kk7nqn.net/transcriber/index.html",
+        "isAccessibleForFree": true,
+        "license": "https://kk7nqn.net/license.html"
+      }
+    ]
+  }
+  </script>
+</head>
+<body>
+  <div class="container mt-4">
+    <!-- Top nav -->
+    <ul class="nav nav-tabs justify-content-center mb-4">
+      <li class="nav-item"><a class="nav-link text-white" href="/index.html">Dashboard</a></li>
+      <li class="nav-item"><a class="nav-link text-white" href="/netcontrol.html">Net Control</a></li>
+      <li class="nav-item"><a class="nav-link text-white" href="/schedule.html">Schedule</a></li>
+      <li class="nav-item"><a class="nav-link active bg-dark text-white" href="/about.html">About</a></li>
+      <li class="nav-item"><a class="nav-link text-white" href="/how_to.html">How To</a></li>
+    </ul>
+
+    <header class="mb-4 text-center">
+      <h1>About the KK7NQN Repeater & Transcriber (TSN)</h1>
+      <p class="lead lead-sm">Two complementary views into the same radio world: the <strong>Repeater</strong> for on‑air activity and health, and the <strong>TSN</strong> for pure, private transcription.</p>
+      <div class="d-flex justify-content-center gap-2 mt-2">
+        <a class="badge badge-pill badge-ctx text-decoration-none" href="/">View Repeater</a>
+        <a class="badge badge-pill badge-ctx text-decoration-none" href="/transcriber/index.html">View TSN</a>
+      </div>
+    </header>
+
+    <!-- Quick anchors -->
+    <div class="row mb-4">
+      <div class="col-12">
+        <div class="card p-3">
+          <div class="kicker mb-2">Jump to</div>
+          <div class="d-flex flex-wrap gap-3 anchor-list">
+            <a href="#overview">Overview</a>
+            <a href="#why-two-systems">Why two systems?</a>
+            <a href="#compare">Repeater vs TSN (Quick Compare)</a>
+            <a href="#use-cases">Use cases</a>
+            <a href="#architecture">Architecture</a>
+            <a href="#privacy">Privacy & Accuracy</a>
+            <a href="#apis">Data & APIs</a>
+            <a href="#faq">FAQ</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Overview -->
+    <section id="overview" class="mb-5">
+      <div class="card p-4">
+        <h2>Overview</h2>
+        <p>
+          The KK7NQN project consists of two distinct but related parts:
+          the <strong>Repeater dashboard</strong> (main site) and the <strong>Transcriber Service Node (TSN)</strong>.
+          They serve different audiences and enforce different policies so operators can choose the right tool for the job.
+        </p>
+        <ul>
+          <li><strong>Repeater</strong> — public‑facing operational view of the on‑air node: live activity, callsign analytics, and health.</li>
+          <li><strong>TSN</strong> — a <em>receive‑only to text</em> service for obtaining transcripts <em>without transmitting anything</em> to RF or to voice networks.</li>
+        </ul>
+        <div class="callout">
+          <p class="mb-0"><strong>Important:</strong> The TSN is <em>not</em> a voice repeater. It does not transmit, it does not link to DoDropIn, Fireside, or other hubs, and it will not rebroadcast your audio on RF. It exists purely to generate text transcripts.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Why two systems? -->
+    <section id="why-two-systems" class="mb-5">
+      <div class="card p-4">
+        <h2>Why two systems?</h2>
+        <p>
+          Nets and casual QSOs often need transcripts—for accessibility, post‑net notes, searchability, or training—
+          but not every conversation should be blasted across large link networks or repeated on RF.
+          Splitting the roles keeps everyone comfortable:
+        </p>
+        <ul>
+          <li><strong>The Repeater</strong> participates in normal on‑air life and can link to networks when appropriate.</li>
+          <li><strong>The TSN</strong> provides a safe place to obtain transcriptions without adding RF traffic or network noise.</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- Quick compare table -->
+    <section id="compare" class="mb-5">
+      <div class="card p-4">
+        <h2>Repeater vs TSN (Quick Compare)</h2>
+        <div class="table-responsive">
+          <table class="table table-sm align-middle">
+            <thead>
+              <tr>
+                <th scope="col">Aspect</th>
+                <th scope="col">Repeater (Main)</th>
+                <th scope="col">TSN (Transcriber)</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <th scope="row">Primary purpose</th>
+                <td>Operational dashboard for the on‑air node: who’s talking, when, and system health.</td>
+                <td>Obtain text transcripts only; no RF transmission, no cross‑network voice linking.</td>
+              </tr>
+              <tr>
+                <th scope="row">Audio path</th>
+                <td>Radio ⇄ Repeater; may link to hubs during nets when appropriate.</td>
+                <td>Audio in → <em>transcribe→text</em>; <strong>no</strong> audio out to RF or hubs.</td>
+              </tr>
+              <tr>
+                <th scope="row">Networks</th>
+                <td>May connect to DoDropIn, Fireside, etc., per schedule/policy.</td>
+                <td>Intentionally isolated. <strong>No</strong> links to DoDropIn, Fireside, or other voice hubs.</td>
+              </tr>
+              <tr>
+                <th scope="row">RF transmission</th>
+                <td>Yes (it’s a repeater).</td>
+                <td><strong>No</strong> RF transmission. Receive→text only.</td>
+              </tr>
+              <tr>
+                <th scope="row">Typical users</th>
+                <td>Local operators, net participants, visitors checking live status.</td>
+                <td>Net control teams, researchers, accessibility users, anyone who needs transcripts without RF impact.</td>
+              </tr>
+              <tr>
+                <th scope="row">Primary datasets</th>
+                <td><code>callsigns</code>, <code>callsign_log</code>, repeater‑scope <code>transcriptions</code>.</td>
+                <td>TSN transcript stream (<code>transcriptions</code>/<code>transcriptions_large</code>) and related metadata.</td>
+              </tr>
+              <tr>
+                <th scope="row">Where to go</th>
+                <td><a href="/">kk7nqn.net</a></td>
+                <td><a href="/transcriber/index.html">kk7nqn.net/transcriber/</a></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- Use cases -->
+    <section id="use-cases" class="mb-5">
+      <div class="card p-4">
+        <h2>Common use cases</h2>
+        <div class="row g-4">
+          <div class="col-md-6">
+            <h5>Use the Repeater when you want…</h5>
+            <ul>
+              <li>Live view of on‑air activity and system telemetry.</li>
+              <li>Callsign analytics (e.g., who’s been active today/this week).</li>
+              <li>Network participation (e.g., DoDropIn or Fireside) when scheduled.</li>
+            </ul>
+          </div>
+          <div class="col-md-6">
+            <h5>Use the TSN when you want…</h5>
+            <ul>
+              <li>Text transcripts without broadcasting your audio on RF.</li>
+              <li>To avoid appearing on large link networks while still capturing content.</li>
+              <li>Searchable records for post‑net minutes, training, or accessibility.
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Architecture -->
+    <section id="architecture" class="mb-5">
+      <div class="card p-4">
+        <h2>Architecture (high level)</h2>
+        <p class="mb-3">Both sides share a common data pipeline, but with different roles and policies.</p>
+        <pre class="codeish p-3" style="background:#0b1220; border:1px solid var(--border); border-radius:.5rem;">
+[RF World]
+  Handhelds/Mobiles  ──▶  KK7NQN Repeater  ──▶  Optional Hub Links (per policy)
+                              │
+                              ├─▶ Repeater Dashboard (live analytics)
+                              │
+                              └─▶ Transcriber (TSN) — receive → text only
+                                        │
+                                        └─▶ TSN Dashboard & APIs (no audio out)
+        </pre>
+        <ul class="mb-0">
+          <li><strong>TSN is intentionally non‑transmitting.</strong> It accepts audio solely to produce text and never sends voice back to RF or hubs.</li>
+          <li><strong>Data sync</strong> protects integrity. The local DB syncs to the public site at short intervals so accidental deletions or edits heal quickly.</li>
+          <li><strong>Timestamps</strong> are stored and returned in Pacific Time (PST/PDT).
+          </li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- Privacy & Accuracy -->
+    <section id="privacy" class="mb-5">
+      <div class="card p-4">
+        <h2>Privacy & Accuracy</h2>
+        <ul>
+          <li><strong>Searchability:</strong> public pages and callsign profiles are crawlable to aid discovery and research.</li>
+          <li><strong>Transcription caveat:</strong> transcripts can contain errors and should not be treated as verbatim records.</li>
+          <li><strong>Opt‑out/Corrections:</strong> contact KK7NQN for takedowns, corrections, or redactions where appropriate.</li>
+          <li><strong>TSN isolation:</strong> using TSN for transcripts will not broadcast your audio on RF or to the big link networks.</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- Data & APIs -->
+    <section id="apis" class="mb-5">
+      <div class="card p-4">
+        <h2>Data & APIs</h2>
+        <p>Public, read‑only endpoints exist for both views. Most endpoints also offer CSV or XML variants.</p>
+        <div class="row g-4">
+          <div class="col-md-6">
+            <h5>Repeater‑scope</h5>
+            <ul>
+              <li><a href="/api/callsigns_db.php?limit=25">/api/callsigns_db.php</a> — list/sort/filter callsigns</li>
+              <li><a href="/api/callsign_log.php?limit=25">/api/callsign_log.php</a> — recent activity</li>
+              <li><a href="/api/transcriptions.php?limit=25">/api/transcriptions.php</a> — latest transcriptions (repeater scope)</li>
+            </ul>
+          </div>
+          <div class="col-md-6">
+            <h5>TSN‑scope</h5>
+            <ul>
+              <li><a href="/transcriber/index.html">TSN Dashboard</a> — browse latest transcripts</li>
+              <li><a href="/api/callsign_log_transcriber.php?limit=25">/api/callsign_log_transcriber.php</a> — TSN activity</li>
+              <li><a href="/api/transcriptions_tsn.php?limit=25">/api/transcriptions_tsn.php</a> — TSN transcripts</li>
+            </ul>
+          </div>
+        </div>
+        <p class="lead-sm">API responses are validated, rate‑limited, and may be cached briefly for performance. All `/api/*` routes ship with <span class="codeish">X‑Robots‑Tag: noindex, nofollow</span>.</p>
+      </div>
+    </section>
+
+    <!-- FAQ -->
+    <section id="faq" class="mb-5">
+      <div class="card p-4">
+        <h2>FAQ</h2>
+        <div class="mb-3">
+          <h6 class="mb-1">Does the TSN transmit on RF?</h6>
+          <p class="mb-0">No. TSN is receive→text only. It never keys a transmitter and never links voice to external hubs.</p>
+        </div>
+        <div class="mb-3">
+          <h6 class="mb-1">Can the TSN link to DoDropIn or Fireside?</h6>
+          <p class="mb-0">No. TSN is intentionally isolated to avoid adding traffic to those networks. Use the Repeater for normal network participation.</p>
+        </div>
+        <div class="mb-3">
+          <h6 class="mb-1">Are transcripts perfect?</h6>
+          <p class="mb-0">No. They’re best‑effort machine transcriptions and can be wrong. Treat them as helpful notes, not official minutes.</p>
+        </div>
+        <div class="mb-3">
+          <h6 class="mb-1">What if I want my callsign or a transcript removed?</h6>
+          <p class="mb-0">Reach out via QRZ or the site’s contact info with details. Reasonable redactions are honored.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Footer note -->
+    <section class="mb-5">
+      <div class="card p-4">
+        <p class="mb-0">This project is licensed under the <a href="/license.html">GNU GPL v3.0</a>. Data is open‑access and bot‑friendly. Use it, build on it, and help improve amateur radio.</p>
+      </div>
+    </section>
+  </div>
+
+  <footer class="text-center mt-5 py-3 border-top" style="color:#8b949e;">
+    <p class="mb-0">&copy; KK7NQN — All timestamps in Pacific Time (PST/PDT). Last updated: <span id="updated"></span></p>
+  </footer>
+
+  <script>
+    // Set the "Last updated" stamp from the document mtime if available, else now
+    (function(){
+      try {
+        var d = new Date(document.lastModified);
+        if (isNaN(d.getTime())) d = new Date();
+        document.getElementById('updated').textContent = d.toLocaleString('en-US', { timeZone: 'America/Los_Angeles' });
+      } catch (e) { /* no-op */ }
+    })();
+  </script>
+</body>
+</html>

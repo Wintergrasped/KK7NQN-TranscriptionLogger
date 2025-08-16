@@ -1,0 +1,25 @@
+# /api/.htaccess
+
+# Keep things simple in /api
+Options -Indexes -Multiviews
+
+# CORS + cache + safety headers
+<IfModule mod_headers.c>
+  Header always set Access-Control-Allow-Origin "*"
+  Header always set Access-Control-Allow-Methods "GET, OPTIONS"
+  Header always set Access-Control-Allow-Headers "Content-Type"
+  Header always set X-Content-Type-Options "nosniff"
+  Header always set Cache-Control "public, max-age=60"
+</IfModule>
+
+# Gzip JSON (shared hosting usually allows this)
+<IfModule mod_deflate.c>
+  AddOutputFilterByType DEFLATE application/json text/plain
+</IfModule>
+
+# Reply to OPTIONS preflight at the web server (no PHP hit)
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteCond %{REQUEST_METHOD} =OPTIONS
+  RewriteRule ^ - [R=204,L]
+</IfModule>

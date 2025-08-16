@@ -1,30 +1,36 @@
 <!DOCTYPE html>
-
 <html lang="en">
 <head>
-<meta charset="utf-8"/>
-<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<!-- SEO & Open Data Meta -->
-<meta content="Hunter Inman (KK7NQN)" name="author"/>
-<meta content="Ham Radio, KK7NQN, Repeater, QSO Logs, AllStarLink, Whisper AI, Call Sign Activity, HamNet, Open Data, GNU GPL" name="keywords"/>
-<meta content="GNU General Public License v3.0" name="license"/>
-<meta content="index, follow" name="robots"/>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <!-- SEO & Open Data Meta -->
+<meta name="author" content="Hunter Inman (KK7NQN)" />
+<meta name="keywords" content="Ham Radio, KK7NQN, Repeater, QSO Logs, AllStarLink, Whisper AI, Call Sign Activity, HamNet, Open Data, GNU GPL" />
+<meta name="license" content="GNU General Public License v3.0" />
+<meta name="robots" content="index, follow" />
+
 <!-- Open Graph Meta for Social Bots -->
-<meta content="KK7NQN Repeater Project" property="og:site_name"/>
-<meta content="website" property="og:type"/>
-<meta content="https://kk7nqn.net/logo.png" property="og:image"/>
-<title>Repeater Dashboard</title>
-<script defer="True" src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script defer="True" src="https://cdn.jsdelivr.net/npm/luxon@3/build/global/luxon.min.js"></script>
-<script defer="True" src="https://cdn.jsdelivr.net/npm/chartjs-adapter-luxon@1.3.1"></script>
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"/>
-<style>
+<meta property="og:site_name" content="KK7NQN Repeater Project" />
+<meta property="og:type" content="website" />
+<meta property="og:image" content="https://kk7nqn.net/logo.png" />
+
+  
+  <title>Repeater Dashboard</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/luxon@3/build/global/luxon.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-luxon@1.3.1"></script>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
     body { background-color: #0d1117; color: #c9d1d9; }
     .card { background-color: #161b22; border: 1px solid #30363d; }
     .table { color: #c9d1d9; }
     h1, h2 { color: #58a6ff; }
   </style>
-<script type="application/ld+json">
+  
+  
+  
+  <script type="application/ld+json">
 {
   "@context": "https://schema.org",
   "@type": ["Dataset", "WebAPI"],
@@ -53,66 +59,68 @@
   "dateModified": "2025-08-04"
 }
 </script>
+
+  
+  
 </head>
 <body>
-<div class="container mt-4">
-<h1 class="text-center">📡 KK7NQN-R Repeater System Dashboard</h1>
-<ul class="nav nav-tabs justify-content-center mb-4">
-<li class="nav-item">
-<a class="nav-link active bg-dark text-white" href="index.html">Dashboard</a>
-</li>
-<li class="nav-item">
-<a class="nav-link text-white" href="netcontrol.html">Net Control</a>
-</li>
-<li class="nav-item">
-<a class="nav-link text-white" href="/transcriber/index.html">TSN</a>
-</li>
-<li class="nav-item">
-<a class="nav-link text-white" href="/nets/info.html">Nets</a>
-</li>
-<li class="nav-item">
-<a class="nav-link text-white" href="schedule.html">Schedule</a>
-</li>
-<li class="nav-item">
-<a class="nav-link text-white" href="about.html">About</a>
-</li>
-<li class="nav-item">
-<a class="nav-link text-white" href="how_to.html">How To</a>
-</li>
+  <div class="container mt-4">
+    <h1 class="text-center">📡 KK7NQN-R Repeater System Dashboard</h1>
+	<ul class="nav nav-tabs justify-content-center mb-4">
+  <li class="nav-item">
+    <a class="nav-link active bg-dark text-white" href="index.html">Dashboard</a>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link text-white" href="netcontrol.html">Net Control</a>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link text-white" href="/nets/info.html">Nets</a>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link text-white" href="schedule.html">Schedule</a>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link text-white" href="about.html">About</a>
+  </li>
+  <li class="nav-item">
+        <a class="nav-link text-white" href="how_to.html">How To</a>
+  </li>
 </ul>
-<p class="text-center">Repeater Ouput: 145.1250 Input: 223.240 Tone: 110.9 Located North East of Shelton WA</p>
-<p class="text-center">Transcription Service Node (TSN) offered seprate from main repeater.</p>
-<p class="text-center"><a href="https://stats.allstarlink.org/stats/62222/networkMap">Repeater AllStar: 62222</a> <====> <a href="https://stats.allstarlink.org/stats/66296/networkMap">TSN AllStar: 66296</a></p>
-<!-- Callsign Stats -->
-<div class="row mt-4">
-<div class="col-md-6">
-<div class="card p-3">
-<h2>Top Callsigns</h2>
-<table class="table table-sm table-striped">
-<thead>
-<tr><th>Callsign</th><th>Seen Count</th><th>Last Seen</th></tr>
-</thead>
-<tbody id="callsignTableBody"></tbody>
-</table>
-</div>
-</div>
-<div class="col-md-6">
-<div class="card p-3">
-<h2>Live Server Stats</h2>
-<canvas height="200" id="systemStatsChart"></canvas>
-</div>
-<div class="card p-3">
-<h2>Live Repeater Stats</h2>
-<canvas height="200" id="repeaterStatsChart"></canvas>
-</div>
-</div>
-</div>
-<!-- Individual Temperature Charts -->
-<div class="row mt-4" id="temperatureCharts"></div>
-<div class="card p-3">
-<h2>Temperatures</h2>
-<canvas height="200" id="tempsChart"></canvas>
-</div>
+
+		<p class="text-center">Ouput: 145.1250 Input: 223.240 Tone: 110.9 Located North East of Shelton WA</p>
+		<p class="text-center"><a href="https://stats.allstarlink.org/stats/62222/networkMap">AllStar: 62222</a></p>
+    <!-- Callsign Stats -->
+    <div class="row mt-4">
+      <div class="col-md-6">
+        <div class="card p-3">
+          <h2>Top Callsigns</h2>
+          <table class="table table-sm table-striped">
+            <thead>
+              <tr><th>Callsign</th><th>Seen Count</th><th>Last Seen</th></tr>
+            </thead>
+            <tbody id="callsignTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="col-md-6">
+        <div class="card p-3">
+          <h2>Live Server Stats</h2>
+          <canvas id="systemStatsChart" height="200"></canvas>
+        </div>
+		<div class="card p-3">
+          <h2>Live Repeater Stats</h2>
+          <canvas id="repeaterStatsChart" height="200"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- Individual Temperature Charts -->
+    <div class="row mt-4" id="temperatureCharts"></div>
+	<div class="card p-3">
+            <h2>Temperatures</h2>
+            <canvas id="tempsChart" height="200"></canvas>
+         </div>
+
 <!--
 		<div class="card p-3">
             <h2>Intake Temp</h2>
@@ -131,36 +139,37 @@
             <canvas id="internalChart" height="200"></canvas>
          </div>
 	-->
-<!-- Transcriptions Log -->
+    <!-- Transcriptions Log -->
+    <div class="row mt-4">
+      <div class="col">
+        <div class="card p-3">
+          <h2>Transcription Log</h2>
+          <table class="table table-sm table-hover">
+            <thead>
+              <tr><th>Timestamp</th><th>Callsign</th><th>Transcript</th></tr>
+            </thead>
+            <tbody id="transcriptTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
 <div class="row mt-4">
-<div class="col">
-<div class="card p-3">
-<h2>Transcription Log</h2>
-<table class="table table-sm table-hover">
-<thead>
-<tr><th>Timestamp</th><th>Callsign</th><th>Transcript</th></tr>
-</thead>
-<tbody id="transcriptTableBody"></tbody>
-</table>
+  <div class="col">
+    <input type="text" id="callsignSearch" class="form-control mb-3" placeholder="Search callsigns...">
+  </div>
 </div>
-</div>
-</div>
-<div class="row mt-4">
-<div class="col">
-<input class="form-control mb-3" id="callsignSearch" placeholder="Search callsigns..." type="text"/>
-</div>
-</div>
-<!-- All Callsigns List -->
-<div class="row mt-4">
-<div class="col">
-<div class="card p-3">
-<h2>Callsign Search</h2>
-<ul class="list-group list-group-flush" id="allCallsigns"></ul>
-</div>
-</div>
-</div>
-</div>
-<script>
+    <!-- All Callsigns List -->
+    <div class="row mt-4">
+      <div class="col">
+        <div class="card p-3">
+          <h2>All Known Callsigns</h2>
+          <ul id="allCallsigns" class="list-group list-group-flush"></ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
   async function safeFetch(url) {
   try {
     const res = await fetch(url);
@@ -173,8 +182,8 @@
   }
 }
     async function loadDashboard() {
-      const callsigns = await fetch('/api/callsigns.php?limit=25').then(r => r.json());
-	  const transcripts = await safeFetch('/api/transcriptions.php?limit=30');
+      const callsigns = await fetch('/api/callsigns.php').then(r => r.json());
+	  const transcripts = await safeFetch('/api/transcriptions.php');
       const sysStats = await fetch('/api/stats.php').then(r => r.json());
 	  const repeaterStats = await fetch('/api/repeaterstats.php').then(r => r.json());
       const temps = await fetch('/api/temperatures.php').then(r => r.json());
@@ -183,21 +192,13 @@
 	  const internal_temps = await fetch('/api/internal_temperature.php').then(r => r.json());
 	  const amplifier_temps = await fetch('/api/amplifier_temperature.php').then(r => r.json());
 	  const radio_temps = await fetch('/api/radio_temperature.php').then(r => r.json());
-	  
-	  
-	  
-const [limitedCallsigns, fullCallsigns] = await Promise.all([
-  fetch('/api/callsigns.php?limit=25').then(r => r.json()),
-  fetch('/api/callsigns.php?limit=950000').then(r => r.json())
-]);
 
-const ignored = ['KK7NQN', 'KK7N'];
-const filteredCallsigns = limitedCallsigns.filter(c => !ignored.includes(c.callsign));
-const searchableCallsigns = fullCallsigns.filter(c => !ignored.includes(c.callsign));
+      const ignored = ['KK7NQN', 'KK7N'];
+      const filteredCallsigns = callsigns.filter(c => !ignored.includes(c.callsign));
 
-const top10 = filteredCallsigns.sort((a, b) => b.seen_count - a.seen_count).slice(0, 10);
-const callBody = document.getElementById('callsignTableBody');
-top10.forEach(row => {
+      const top10 = filteredCallsigns.sort((a, b) => b.seen_count - a.seen_count).slice(0, 10);
+      const callBody = document.getElementById('callsignTableBody');
+      top10.forEach(row => {
   callBody.innerHTML += `
     <tr>
       <td><a href="callsign.html?cs=${row.callsign}" class="text-decoration-none text-primary">${row.callsign}</a></td>
@@ -211,28 +212,23 @@ const searchInput = document.getElementById('callsignSearch');
 
 function renderCallsigns(filter = '') {
   allList.innerHTML = '';
-  const matches = searchableCallsigns
+  filteredCallsigns
     .filter(row => row.callsign.toLowerCase().includes(filter.toLowerCase()))
-    .slice(0, 50); // optional: show max 50 results
-
-  if (matches.length === 0) {
-    allList.innerHTML = `<li class="list-group-item bg-transparent text-white">No results found.</li>`;
-    return;
-  }
-
-  matches.forEach(row => {
-    allList.innerHTML += `
-      <li class="list-group-item bg-transparent">
-        <a href="callsign.html?cs=${row.callsign}" class="text-white text-decoration-none">${row.callsign}</a>
-      </li>`;
-  });
+    .forEach(row => {
+      allList.innerHTML += `
+        <li class="list-group-item bg-transparent">
+          <a href="callsign.html?cs=${row.callsign}" class="text-white text-decoration-none">${row.callsign}</a>
+        </li>`;
+    });
 }
 
 searchInput.addEventListener('input', () => {
   renderCallsigns(searchInput.value);
 });
 
+// Initial render
 renderCallsigns();
+
 
 
 
@@ -296,10 +292,11 @@ renderCallsigns();
   </script>
 </body>
 <footer class="text-center mt-5 py-3 border-top" style="color:#8b949e;">
-<p>
+  <p>
     🛰️ This project is licensed under the 
-    <a class="text-decoration-none" href="license.html" style="color:#58a6ff;">GNU GPL v3.0</a>.<br/>
+    <a href="license.html" class="text-decoration-none" style="color:#58a6ff;">GNU GPL v3.0</a>.<br />
     All data is open-access, bot-friendly, and free for public use. Use it. Build with it. Improve ham radio.
   </p>
 </footer>
+
 </html>

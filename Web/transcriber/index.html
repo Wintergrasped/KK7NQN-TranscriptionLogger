@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>KK7NQN TSN Dashboard — Transcribe Service Node</title>
+  <style>
+    * { box-sizing: border-box; }
+    :root {
+      --primary: #2563eb; --primary-dark:#1e40af; --secondary:#64748b; --success:#10b981;
+      --danger:#ef4444; --dark:#1e293b; --light:#f8fafc; --border:#e2e8f0;
+    }
+    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Arial, sans-serif; background: #0f172a; margin:0; color:#0f172a; }
+    .wrap { max-width: 1200px; margin: 0 auto; padding: 24px; }
+    .panel { background: #fff; border:1px solid var(--border); border-radius: 14px; box-shadow: 0 10px 30px rgba(0,0,0,.08); }
+    header.panel { padding: 22px; margin-bottom: 16px; display:flex; align-items:center; justify-content: space-between; }
+    header h1 { margin:0; font-size: 22px; color: var(--dark); }
+    .status { display:inline-flex; align-items:center; gap:8px; padding:6px 12px; border-radius: 999px; color:#fff; background: var(--success); font-size: 13px; }
+    .dot { width:8px; height:8px; background:#fff; border-radius:50%; animation: pulse 1.5s infinite; }
+    @keyframes pulse { 0%{opacity:1} 50%{opacity:.5} 100%{opacity:1} }
+
+    .controls.panel { padding: 14px; display:flex; flex-wrap: wrap; gap:10px; align-items:center; margin-bottom: 16px; }
+    .btn { background: var(--primary); color:#fff; border:0; border-radius: 10px; padding: 10px 14px; cursor:pointer; font-weight:600; }
+    .btn.secondary { background:#475569; }
+    .btn:disabled{ opacity:.6; cursor:not-allowed; }
+    .input { border:1px solid var(--border); border-radius: 10px; padding: 10px 12px; font-size:14px; }
+
+    .stats { display:grid; grid-template-columns: repeat(auto-fit,minmax(220px,1fr)); gap:12px; margin-bottom: 16px; }
+    .stat { background: linear-gradient(135deg, var(--primary), var(--primary-dark)); color:#fff; padding:16px; border-radius:12px; }
+    .stat h3 { margin:0 0 6px; font-size:12px; opacity:.9; }
+    .stat .v { font-size: 26px; font-weight: 800; }
+
+    .grid { display:grid; grid-template-columns: 1fr; gap:16px; }
+    @media (min-width: 1000px){ .grid{ grid-template-columns: 1fr 1fr; } }
+    .card { padding: 16px; }
+    .card h2 { margin: 0 0 12px; font-size: 16px; color: var(--dark); }
+
+    .table-wrap { border:1px solid var(--border); border-radius: 10px; overflow:auto; max-height: 420px; }
+    table { width:100%; border-collapse: collapse; }
+    th, td { padding: 10px 12px; border-bottom: 1px solid var(--border); text-align:left; font-size: 14px; color:#0f172a; }
+    th { position: sticky; top:0; background: var(--light); z-index: 1; font-weight:700; }
+    tr:hover td { background:#f1f5f9; }
+    .badge { display:inline-block; padding:3px 8px; border-radius:6px; background:var(--primary); color:#fff; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size:12px; }
+    .badge-link { text-decoration: none; cursor: pointer; }
+    .badge-link:hover .badge { background: var(--primary-dark); }
+    .badge-none { background: var(--secondary); }
+    
+    .transcript-text { position: relative; cursor: pointer; }
+    .transcript-text.expandable { color: var(--primary); }
+    .transcript-text.expandable:hover { text-decoration: underline; }
+    .transcript-full { 
+      display: none; 
+      margin-top: 8px; 
+      padding: 10px; 
+      background: var(--light); 
+      border-radius: 8px; 
+      border: 1px solid var(--border);
+      font-size: 13px;
+      line-height: 1.5;
+      max-width: 100%;
+      word-wrap: break-word;
+      white-space: pre-wrap;
+      max-height: 400px;
+      overflow-y: auto;
+    }
+    .transcript-full.show { display: block; }
+    .expand-btn { 
+      color: var(--primary); 
+      font-size: 11px; 
+      margin-left: 5px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+    .expand-btn:hover { text-decoration: underline; }
+
+    .alert { background:#fef2f2; color:var(--danger); padding:10px 12px; border-radius: 10px; border-left:4px solid var(--danger); }
+
+    .toast { position: fixed; right: 20px; top: 20px; background: var(--success); color:#fff; padding: 10px 14px; border-radius: 999px; display:none; }
+    .toast.show{ display:block; }
+    
+    .date-controls { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+    .date-controls label { font-size: 12px; color: var(--secondary); margin-right: 4px; }
+    
+    .export-toolbar { display: flex; flex-wrap: wrap; gap: 8px; padding: 8px 0; }
+    .btn-export { background: var(--secondary); color: white; border: none; padding: 6px 12px; border-radius: 8px; cursor: pointer; font-size: 12px; font-weight: 500; }
+    .btn-export:hover { background: #475569; }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <header class="panel">
+    <h1>KK7NQN TSN Dashboard</h1>
+    <div class="status"><span class="dot"></span> Live</div>
+  </header>
+
+  <section class="controls panel">
+    <button class="btn" id="refreshBtn">Refresh</button>
+    <button class="btn secondary" id="autoBtn">Auto-Refresh: <span id="autoFlag">OFF</span></button>
+    <input class="input" id="search" placeholder="Search callsigns or text" style="flex:1; min-width:220px;" />
+    <div class="date-controls">
+      <label for="from">From:</label>
+      <input class="input" type="datetime-local" id="from" title="From Date/Time" />
+      <label for="to">To:</label>
+      <input class="input" type="datetime-local" id="to" title="To Date/Time" />
+      <button class="btn secondary" id="applyBtn">Apply</button>
+    </div>
+    <div class="export-toolbar">
+      <button class="btn-export" onclick="exportTranscriptionsJSON()">📋 Trans JSON</button>
+      <button class="btn-export" onclick="exportTranscriptionsCSV()">📊 Trans CSV</button>
+      <button class="btn-export" onclick="exportTranscriptionsXML()">📄 Trans XML</button>
+      <button class="btn-export" onclick="exportCallsignsJSON()">📋 Calls JSON</button>
+      <button class="btn-export" onclick="exportCallsignsCSV()">📊 Calls CSV</button>
+      <button class="btn-export" onclick="exportCallsignsXML()">📄 Calls XML</button>
+	  <p>Coming Soon!</P>
+    </div>
+  </section>
+
+  <section class="stats" id="stats">
+    <div class="stat"><h3>Total Transcriptions</h3><div class="v" id="vTotal">-</div></div>
+    <div class="stat"><h3>Active Callsigns</h3><div class="v" id="vCalls">-</div></div>
+    <div class="stat"><h3>Today</h3><div class="v" id="vToday">-</div></div>
+    <div class="stat"><h3>Last Update</h3><div class="v" id="vClock">-</div></div>
+  </section>
+
+  <section class="grid">
+    <div class="panel card">
+      <h2>Latest Transcriptions</h2>
+      <div class="table-wrap">
+        <table id="tTrans">
+          <thead><tr><th>Timestamp</th><th>Callsign</th><th>Text</th><th>ID</th></tr></thead>
+          <tbody><tr><td colspan="4">Loading…</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="panel card">
+      <h2>Top Callsigns</h2>
+      <div class="table-wrap">
+        <table id="tCalls">
+          <thead><tr><th>#</th><th>Callsign</th><th>Count</th><th>Last Seen</th></tr></thead>
+          <tbody><tr><td colspan="4">Loading…</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel card" style="margin-top:16px;">
+    <h2>Net Report</h2>
+    <div id="netReport">Loading…</div>
+  </section>
+</div>
+<div class="toast" id="toast">Data refreshed</div>
+
+<script>
+  // ===== Configuration =====
+  const API_BASE = 'https://kk7nqn.net/api/';
+  // If you decide to filter to just the TSN node, set a constant here (string), or leave '' to show all
+  const FILTER_NODE = '';
+
+  // ===== State =====
+  let allTrans = []; 
+  let allCalls = []; 
+  let autoTimer = null;
+  let callsignMap = {}; // Map transcript IDs to validated callsigns
+
+  // ===== Utilities =====
+  const qs = sel => document.querySelector(sel);
+  const qsa = sel => Array.from(document.querySelectorAll(sel));
+  const fmt = ts => {
+    if (!ts) return '-';
+    const d = new Date(ts);
+    return isNaN(d) ? ts : d.toLocaleString('en-US', { month:'short', day:'2-digit', hour:'2-digit', minute:'2-digit' });
+  };
+  const esc = s => { const d = document.createElement('div'); d.textContent = String(s ?? ''); return d.innerHTML; };
+  const showToast = (m='Data refreshed') => { const t = qs('#toast'); t.textContent=m; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'), 1500); };
+  const todayStr = () => new Date().toDateString();
+
+  // ===== API fetchers =====
+  async function fetchTranscriptions(){
+    const from = qs('#from').value; 
+    const to = qs('#to').value;
+    
+    // Build search params with proper datetime format
+    const params = { limit: '200' };
+    if (from) params.since = from.replace('T', ' ') + ':00';
+    if (to) params.until = to.replace('T', ' ') + ':59';
+    
+    const p = new URLSearchParams(params);
+    const url = API_BASE + 'callsign_transcriptions_transcriber.php?' + p.toString();
+    
+    try {
+      const r = await fetch(url, { 
+        method: 'GET',
+        headers: {
+          'Accept': 'application/json'
+        }
+      });
+      
+      if(!r.ok) {
+        console.error('Transcriptions fetch failed:', r.status, r.statusText);
+        throw new Error(`HTTP ${r.status}: ${r.statusText}`);
+      }
+      
+      const j = await r.json();
+      let arr = Array.isArray(j) ? j : (Array.isArray(j.data)? j.data : []);
+      
+      // Optional node filter via filename pattern if present
+      if (FILTER_NODE) {
+        arr = arr.filter(x => {
+          const f = x.filename || '';
+          return f.includes(`_${FILTER_NODE}_`);
+        });
+      }
+      
+      allTrans = arr;
+      
+      // Now fetch callsign data for these transcriptions to get validated callsigns
+      await fetchCallsignMentions();
+    } catch (error) {
+      console.error('Error in fetchTranscriptions:', error);
+      throw error;
+    }
+  }
+
+  async function fetchCallsignMentions() {
+    // Clear the map
+    callsignMap = {};
+    
+    // First, check if transcriptions already have callsign data
+    allTrans.forEach(t => {
+      const tid = t.transcript_id || t.id;
+      if (!tid) return;
+      
+      // Check if there's a callsign field directly in the data
+      if (t.callsign) {
+        const tidStr = String(tid);
+        if (!callsignMap[tidStr]) {
+          callsignMap[tidStr] = [];
+        }
+        if (!callsignMap[tidStr].includes(t.callsign)) {
+          callsignMap[tidStr].push(t.callsign);
+        }
+      }
+    });
+    
+    // Now fetch additional callsign data from callsign_log
+    try {
+      const from = qs('#from').value;
+      const to = qs('#to').value;
+      
+      const params = { limit: '5000' };
+      if (from) params.since = from.replace('T', ' ') + ':00';
+      if (to) params.until = to.replace('T', ' ') + ':59';
+      
+      const p = new URLSearchParams(params);
+      const url = API_BASE + 'callsign_log_transcriber.php?' + p.toString();
+      
+      const r = await fetch(url, { 
+        method: 'GET',
+        headers: {
+          'Accept': 'application/json'
+        }
+      });
+      
+      if (r.ok) {
+        const data = await r.json();
+        
+        // Check if there's an error in the response
+        if (data.error) {
+          console.warn('Callsign log error:', data.error, data.message);
+          // Continue without callsign enrichment - don't fail the whole load
+          return;
+        }
+        
+        const logs = Array.isArray(data) ? data : (data.data || []);
+        
+        console.log('Callsign log entries:', logs.length);
+        
+        // Build a map of transcript_id to callsigns
+        // Store under both string and number versions of the ID for safety
+        logs.forEach(log => {
+          if (log.transcript_id && log.callsign) {
+            const tidStr = String(log.transcript_id);
+            const tidNum = String(Number(log.transcript_id)); // Normalize numbers
+            
+            [tidStr, tidNum].forEach(tid => {
+              if (!callsignMap[tid]) {
+                callsignMap[tid] = [];
+              }
+              if (!callsignMap[tid].includes(log.callsign)) {
+                callsignMap[tid].push(log.callsign);
+              }
+            });
+          }
+        });
+        
+        console.log('Callsign map built, sample:', Object.keys(callsignMap).slice(0, 5));
+      } else {
+        console.warn('Callsign log fetch failed with status:', r.status);
+        // Continue without callsign enrichment
+      }
+    } catch (err) {
+      console.warn('Could not fetch callsign mentions:', err);
+      // Don't throw - this is optional enhancement
+    }
+  }
+
+  async function fetchCallsigns(){
+    const from = qs('#from').value; 
+    const to = qs('#to').value;
+    
+    const params = {
+      limit: '100',
+      order: 'seen_count',
+      dir: 'desc'
+    };
+    
+    if (from) params.since = from.replace('T', ' ') + ':00';
+    if (to) params.until = to.replace('T', ' ') + ':59';
+    
+    const p = new URLSearchParams(params);
+    const url = API_BASE + 'callsigns_db_transcriber.php?' + p.toString();
+    
+    try {
+      const r = await fetch(url, { 
+        method: 'GET',
+        headers: {
+          'Accept': 'application/json'
+        }
+      });
+      
+      if(!r.ok) {
+        console.error('Callsigns fetch failed:', r.status, r.statusText);
+        throw new Error(`HTTP ${r.status}: ${r.statusText}`);
+      }
+      
+      const j = await r.json();
+      allCalls = Array.isArray(j) ? j : (Array.isArray(j.data)? j.data : []);
+    } catch (error) {
+      console.error('Error in fetchCallsigns:', error);
+      throw error;
+    }
+  }
+
+  async function fetchNetReport(){
+    const from = qs('#from').value; 
+    const to = qs('#to').value;
+    
+    const params = {};
+    if (from) params.start = from.replace('T', ' ') + ':00';
+    if (to) params.end = to.replace('T', ' ') + ':59';
+    
+    // Only add params if they exist
+    if (!from && !to) {
+      // If no date range, use current date
+      const now = new Date();
+      const yesterday = new Date(now);
+      yesterday.setDate(yesterday.getDate() - 1);
+      params.start = yesterday.toISOString().slice(0, 19).replace('T', ' ');
+      params.end = now.toISOString().slice(0, 19).replace('T', ' ');
+    }
+    
+    const p = new URLSearchParams(params);
+    const url = API_BASE + 'netreport_transcriber.php?' + p.toString();
+    
+    try {
+      const r = await fetch(url, { 
+        method: 'GET',
+        headers: {
+          'Accept': 'application/json'
+        }
+      });
+      
+      if(!r.ok) {
+        console.error('Net report fetch failed:', r.status, r.statusText);
+        qs('#netReport').innerHTML = '<div class="alert">Unable to load net report (HTTP ' + r.status + ')</div>'; 
+        return;
+      }
+      
+      const j = await r.json();
+      
+      if (j.error) {
+        qs('#netReport').innerHTML = '<div class="alert">Error: ' + esc(j.error) + '</div>';
+        return;
+      }
+      
+      const tcount = Array.isArray(j.transcripts) ? j.transcripts.length : (j.count || 0);
+      const ccount = Array.isArray(j.call_signs) ? j.call_signs.length : (j.calls || 0);
+      let top = '';
+      if (Array.isArray(j.call_signs) && j.call_signs.length){ 
+        const first = j.call_signs[0]; 
+        top = `<a href="https://kk7nqn.net/callsign.html?cs=${first.callsign}" target="_blank" style="color: var(--primary); text-decoration: none;">${esc(first.callsign)}</a> (${first.mentions||first.seen_count||0})`;
+      }
+      qs('#netReport').innerHTML = `
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;">
+          <div class="panel" style="padding:12px;">Transcriptions in Range: <strong>${tcount}</strong></div>
+          <div class="panel" style="padding:12px;">Active Callsigns: <strong>${ccount}</strong></div>
+          <div class="panel" style="padding:12px;">Most Active: <strong>${top||'-'}</strong></div>
+        </div>`;
+    } catch (error) {
+      console.error('Error in fetchNetReport:', error);
+      qs('#netReport').innerHTML = '<div class="alert">Failed to load net report: ' + esc(error.message) + '</div>';
+    }
+  }
+
+  // ===== Renderers =====
+  function render(){
+    const q = qs('#search').value.trim().toUpperCase();
+    let trans = allTrans;
+    if (q){ 
+      trans = trans.filter(t => {
+        const text = String(t.transcription||t.text||'').toUpperCase();
+        const tid = String(t.transcript_id || t.id);
+        const callsigns = callsignMap[tid] || [];
+        return text.includes(q) || callsigns.some(cs => cs.toUpperCase().includes(q));
+      }); 
+    }
+
+    const tbody = qs('#tTrans tbody');
+    if (!trans.length){ 
+      tbody.innerHTML = '<tr><td colspan="4"><div class="alert">No transcriptions for selection</div></td></tr>'; 
+    } else {
+      tbody.innerHTML = trans.slice(0,100).map((t, idx) => {
+        const ts = t.transcript_timestamp || t.timestamp || '';
+        const text = t.transcription || t.text || '';
+        const tid = String(t.transcript_id || t.id || ''); // Ensure string for consistency
+        
+        // Get validated callsigns from our map, or show "None" if null
+        const callsigns = callsignMap[tid] || [];
+        let callsignDisplay = '';
+        
+        // Debug log for specific transcript
+        if (tid === '10021' || tid === 10021) {
+          console.log('Transcript 10021 - ID type:', typeof tid, 'Callsigns:', callsigns);
+          console.log('Available keys in map:', Object.keys(callsignMap).filter(k => k.includes('10021')));
+        }
+        
+        if (callsigns.length > 0) {
+          // Display first callsign (or multiple if there are several)
+          callsignDisplay = callsigns.slice(0, 3).map(cs => 
+            `<a href="https://kk7nqn.net/callsign.html?cs=${cs}" target="_blank" class="badge-link"><span class="badge">${esc(cs)}</span></a>`
+          ).join(' ');
+          if (callsigns.length > 3) {
+            callsignDisplay += ` <span style="font-size:11px; color:var(--secondary);">+${callsigns.length - 3}</span>`;
+          }
+        } else {
+          callsignDisplay = '<span class="badge badge-none">None</span>';
+        }
+        
+        // Handle transcript text - show truncated with expand option if long
+        let textDisplay = '';
+        const maxLength = 140;
+        if (text.length > maxLength) {
+          const truncated = text.slice(0, maxLength);
+          textDisplay = `
+            <div class="transcript-wrapper">
+              <span class="transcript-preview" id="preview-${idx}">${esc(truncated)}…<span class="expand-btn" onclick="toggleTranscript(${idx})">[Show More]</span></span>
+              <div class="transcript-full" id="full-${idx}">
+                ${esc(text)}
+                <br><span class="expand-btn" onclick="toggleTranscript(${idx})">[Show Less]</span>
+              </div>
+            </div>
+          `;
+        } else {
+          textDisplay = esc(text);
+        }
+        
+        return `<tr>
+          <td>${fmt(ts)}</td>
+          <td>${callsignDisplay}</td>
+          <td>${textDisplay}</td>
+          <td>${esc(tid)}</td>
+        </tr>`;
+      }).join('');
+    }
+
+    let calls = allCalls;
+    if (q){ calls = calls.filter(c => String(c.callsign||'').toUpperCase().includes(q)); }
+
+    const cbody = qs('#tCalls tbody');
+    if (!calls.length){ 
+      cbody.innerHTML = '<tr><td colspan="4"><div class="alert">No callsign data</div></td></tr>'; 
+    } else {
+      cbody.innerHTML = calls.slice(0,50).map((c,i)=>{
+        const cnt = c.seen_count ?? c.mentions ?? 0;
+        const last = c.last_seen || c.timestamp || '';
+        const callsign = c.callsign || '';
+        return `<tr>
+          <td>${i+1}</td>
+          <td><a href="https://kk7nqn.net/callsign.html?cs=${callsign}" target="_blank" class="badge-link"><span class="badge">${esc(callsign)}</span></a></td>
+          <td>${esc(cnt)}</td>
+          <td>${fmt(last)}</td>
+        </tr>`;
+      }).join('');
+    }
+
+    // stats
+    qs('#vTotal').textContent = trans.length;
+    qs('#vCalls').textContent = calls.length;
+    const tToday = allTrans.filter(t => {
+      const ts = t.transcript_timestamp || t.timestamp; 
+      if(!ts) return false;
+      return new Date(ts).toDateString() === todayStr();
+    }).length;
+    qs('#vToday').textContent = tToday;
+  }
+  
+  // Toggle transcript expansion
+  function toggleTranscript(idx) {
+    const preview = qs(`#preview-${idx}`);
+    const full = qs(`#full-${idx}`);
+    
+    if (full.classList.contains('show')) {
+      full.classList.remove('show');
+      preview.style.display = 'inline';
+    } else {
+      full.classList.add('show');
+      preview.style.display = 'none';
+    }
+  }
+
+  // ===== Actions =====
+  async function refresh(){
+    qs('#refreshBtn').disabled = true;
+    
+    console.log('Starting refresh...');
+    
+    try {
+      // Fetch data sequentially to debug better
+      console.log('Fetching transcriptions...');
+      await fetchTranscriptions();
+      console.log('Transcriptions loaded:', allTrans.length);
+      
+      console.log('Fetching callsigns...');
+      await fetchCallsigns();
+      console.log('Callsigns loaded:', allCalls.length);
+      
+      console.log('Fetching net report...');
+      await fetchNetReport();
+      console.log('Net report loaded');
+      
+      render();
+      showToast('Data refreshed');
+    } catch(err){
+      console.error('Refresh failed:', err);
+      
+      // Show more specific error messages
+      if (err.message.includes('transcriptions')) {
+        qs('#tTrans tbody').innerHTML = '<tr><td colspan="4"><div class="alert">Failed to load transcriptions: ' + esc(err.message) + '</div></td></tr>';
+      } else {
+        qs('#tTrans tbody').innerHTML = '<tr><td colspan="4"><div class="alert">Failed to load transcriptions</div></td></tr>';
+      }
+      
+      if (err.message.includes('callsigns')) {
+        qs('#tCalls tbody').innerHTML = '<tr><td colspan="4"><div class="alert">Failed to load callsigns: ' + esc(err.message) + '</div></td></tr>';
+      } else {
+        qs('#tCalls tbody').innerHTML = '<tr><td colspan="4"><div class="alert">Failed to load callsigns</div></td></tr>';
+      }
+      
+      qs('#netReport').innerHTML = '<div class="alert">Failed to load net report</div>';
+    } finally {
+      qs('#refreshBtn').disabled = false;
+    }
+  }
+
+  // ===== Wire up =====
+  document.addEventListener('DOMContentLoaded', () => {
+    // Default dates: last 24 hours with time
+    const now = new Date();
+    const yesterday = new Date(now);
+    yesterday.setDate(yesterday.getDate() - 1);
+    
+    // Format for datetime-local input (YYYY-MM-DDTHH:MM)
+    const formatDateTime = (date) => {
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      const hours = String(date.getHours()).padStart(2, '0');
+      const minutes = String(date.getMinutes()).padStart(2, '0');
+      return `${year}-${month}-${day}T${hours}:${minutes}`;
+    };
+    
+    qs('#from').value = formatDateTime(yesterday);
+    qs('#to').value = formatDateTime(now);
+
+    qs('#refreshBtn').addEventListener('click', refresh);
+    qs('#applyBtn').addEventListener('click', refresh);
+    qs('#search').addEventListener('input', render);
+
+    // clock
+    setInterval(()=>{ qs('#vClock').textContent = new Date().toLocaleTimeString(); }, 1000);
+
+    // auto-refresh toggle
+    qs('#autoBtn').addEventListener('click', () => {
+      const f = qs('#autoFlag');
+      if (autoTimer){ clearInterval(autoTimer); autoTimer=null; f.textContent = 'OFF'; }
+      else { autoTimer = setInterval(refresh, 30000); f.textContent = 'ON'; }
+    });
+
+    // initial load
+    refresh();
+  });
+</script>
+</body>
+</html>
