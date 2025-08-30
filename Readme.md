@@ -4,25 +4,6 @@ Live Example setup at https://kk7nqn.net
 
 This project is a modular SDR-based system for capturing, transcribing, logging, and monitoring amateur radio repeater activity. It uses an RTL-SDR receiver, Whisper for transcription, Flask for web/API serving, and QRZ for call sign validation.
 
-## 📁 Repository Structure
-
-sdr-repeater-logger/
-├── LoggerAudio/
-│ ├── AudioCaptureLoop.sh # Main SDR recording loop
-│ ├── TranscribeWatcher.py # Watches for WAV files and transcribes
-│ └── TranscribeAndLog.py # Transcribes audio and logs it
-│
-├── Logger/
-│ ├── CallSignExtractor.py # Pulls and corrects call signs from transcriptions
-│ ├── CallSignValidator.py # Validates callsigns via QRZ API
-│ ├── SystemStatus.py # Flask server for basic system metrics
-│ └── TempReceiver.py # Flask server for temperature sensor updates
-│
-├── Web/
-│ ├── DashboardAPI.py # Main Flask API for dashboard
-│ └── index.html # Web-based dashboard interface
-└── README.md
-
 ## 🎯 System Overview
 
 ### 🔊 `LoggerAudio/`
@@ -84,6 +65,209 @@ sdr-repeater-logger/
 ## 🛠️ Setup Instructions
 
 > ⚠️ This is an early development version. Automation and packaging are coming soon.
+
+# KK7NQN Transcription Service Node (TSN) – Install & Setup Guide
+
+This guide explains how to set up a **basic Transcription Node (TSN)** for AllStarLink. The TSN captures audio from AllStar hub connections, transcribes it using Whisper, and logs results into a MySQL database. Optional support is included for callsign extraction with QRZ XML API validation.
+
+> ⚠️ This guide assumes a Linux system (such as a Raspberry Pi or mini-PC) with AllStarLink and Python installed.
+
+---
+
+## 📦 System Overview
+
+| Component             | Purpose                              |
+|----------------------|--------------------------------------|
+| AllStarLink Hub Node | Receives remote audio (no RF/COS)    |
+| Whisper              | Transcribes WAVs to text             |
+| MySQL                | Stores transcripts and metadata      |
+| Python Scripts       | Handles file watch, transcription    |
+| QRZ Integration      | (Optional) Validates callsigns       |
+
+---
+
+## 🛠️ Installation Steps
+
+### 1. Install AllStarLink and Set Up as Hub
+
+Install using the official installer:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/AllStarLink/installer/master/install-allstar.sh | sh
+```
+
+Configure the system as a **hub node only** — do not set up a radio interface.
+
+---
+
+### 2. Enable PTT-Based Recording in Asterisk
+
+Edit the following files:
+
+- `rpt.conf`: Enable recording and set the archive directory.
+- `extensions.conf`: Modify recording logic to trigger on **PTT start/end**, not COS.
+
+> 🧪 Example files can be found in the `TSN/AllStar-CONF/` directory of this repository.
+
+---
+
+### 3. Edit `push-taas-wavs.sh`
+
+Set the following variables:
+
+```bash
+WATCH_DIR="/var/log/asterisk/transcripts"
+REMOTE_HOST="192.168.1.100"
+REMOTE_USER="tsnuser"
+REMOTE_DIR="/home/tsnuser/incoming"
+```
+
+This script monitors for `.wav` files and pushes them to your transcription server over SFTP.
+
+---
+
+### 4. Autostart `push-taas-wavs.sh` (Optional)
+
+You can launch this script on boot using:
+
+- `systemd`
+- `cron @reboot`
+- Or manually (for testing)
+
+---
+
+### 5. Copy Scripts to Transcription Server
+
+On your transcription server, place the following Python scripts:
+
+- `transcribe_watcher.py`
+- `transcribe_and_log.py`
+
+---
+
+### 6. Configure `transcribe_watcher.py`
+
+Edit:
+
+```python
+WATCH_DIR = "/home/tsnuser/incoming"
+```
+
+Also edit **line 28** to set the path to `transcribe_and_log.py`:
+```python
+subprocess.call(["python3", "/path/to/transcribe_and_log.py", new_file])
+```
+
+---
+
+### 7. Configure `transcribe_and_log.py`
+
+Set your MySQL connection credentials:
+
+```python
+host = "localhost"
+user = "tsnuser"
+password = "your_password"
+database = "repeater"
+```
+
+---
+
+### 8. Place `callsign_extractor.py` (Optional)
+
+Copy `callsign_extractor.py` to the machine that will handle callsign detection.
+
+---
+
+### 9. Configure `callsign_extractor.py`
+
+Edit connection and QRZ credentials:
+
+```python
+use_qrz = True
+qrz_username = "your_qrz_username"
+qrz_password = "your_qrz_password"
+```
+
+---
+
+### 10. Autostart `transcribe_watcher.py` on Boot
+
+Use one of:
+
+- `systemd` service file (recommended)
+- `cron @reboot`
+- Manual launch with `screen` or `tmux`
+
+---
+
+### 11. Test the Full Flow
+
+- Trigger a test PTT on your AllStar hub node
+- Confirm `.wav` files are sent to the transcription server
+- Verify the file is transcribed and logged into the MySQL database
+
+---
+
+### 12. (Optional) Setup Public Web Dashboard
+
+Follow the upcoming **Dashboard Setup Guide** (Coming Soon) to expose data and statistics via a public website or API.
+
+---
+
+## 🗂️ Example Project Structure
+
+```
+TSN/
+├── push-taas-wavs.sh
+├── transcribe_watcher.py
+├── transcribe_and_log.py
+├── callsign_extractor.py
+├── AllStar-CONF/
+│   ├── rpt.conf
+│   └── extensions.conf
+```
+
+---
+
+## 🧠 MySQL Schema Summary
+
+Ensure these tables exist:
+
+```sql
+CREATE TABLE transcriptions (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    filename VARCHAR(255) NOT NULL,
+    transcription TEXT,
+    timestamp DATETIME,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    processed TINYINT DEFAULT 0
+);
+
+CREATE TABLE callsigns (
+    ID INT PRIMARY KEY AUTO_INCREMENT,
+    callsign VARCHAR(16) UNIQUE NOT NULL,
+    validated TINYINT DEFAULT 0,
+    first_seen DATETIME DEFAULT CURRENT_TIMESTAMP,
+    last_seen DATETIME DEFAULT CURRENT_TIMESTAMP,
+    seen_count INT DEFAULT 1,
+    original_timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE callsign_log (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    callsign VARCHAR(16) NOT NULL,
+    transcript_id INT NOT NULL,
+    timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+```
+
+---
+
+## 📬 Contact
+
+Created by [Hunter Inman (KK7NQN)](https://www.qrz.com/db/KK7NQN)  
+Project Website: [https://kk7nqn.net](https://kk7nqn.net)
 
 ### 1. Clone the Repository
 

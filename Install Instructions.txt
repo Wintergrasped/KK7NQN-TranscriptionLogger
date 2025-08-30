@@ -1,0 +1,25 @@
+To start a basic Transcibe node you need to do the following steps.
+
+1. Install AllStarLink and setup as Hub (No Radio Interface)
+
+2. Edit RPT.conf to turn on Recordings then edit extensions.conf(Examples provided in TSN/AllSta-CONF) as by default AllStar triggers recordings on COS since a hub does not have COS we need it to trigger recording when a PTT sesion is started and end when PTT sesion ends
+
+3. Edit push-taas-wavs.sh set "WATCH_DIR" to the directory your Recordings are stored in and set your SFTP Info along with where your Audio files should be transfered to for your transcriber script to pickup
+
+4. Set push-taas-wavs.sh to start on boot with a Service or other method (Starting Manually works fine for testing aswell)
+
+5. On your Transcription server (Can be on same machine) place the transcribe_watcher.py and transcribe_and_log.py
+
+6. Edit transcribe_watcher.py set your "WATCH_DIR" to the same directory you set "REMOTE_DIR" to in push-taas-wavs.sh dont forget to edit Line 28 to match the location of your transcribe_and_log.py
+
+7. Edit transcribe_and_log.py to set your MySQL server info
+
+8. Place your callsign_extractor.py on the machine you plan to do callsign extraction
+
+9. Edit callsign_extractor.py setting your MySQL server info and if your using QRZ Validation and if you are set your QRZ XML Api log in information
+
+10. Setup transcribe_watcher.py to start on boot
+
+11. Do a test connection and verify recordings are making it into the correct file and being transcribed into the database.
+
+12. If you want to setup a web dashboard follow the Dashboard Setup instructions (Coming Soon)
