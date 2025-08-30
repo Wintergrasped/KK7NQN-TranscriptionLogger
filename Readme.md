@@ -268,9 +268,3 @@ CREATE TABLE callsign_log (
 
 Created by [Hunter Inman (KK7NQN)](https://www.qrz.com/db/KK7NQN)  
 Project Website: [https://kk7nqn.net](https://kk7nqn.net)
-
-### 1. Clone the Repository
-
-```bash
-git clone https://github.com/yourname/sdr-repeater-logger.git
-cd sdr-repeater-logger
