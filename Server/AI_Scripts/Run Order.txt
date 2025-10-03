@@ -1,0 +1,5 @@
+For Result stacks to work right the scripts must be ran in the following order
+1. Transcript_Analyzer
+2. topic_extractor
+3. ai_smoother
+4. extended_profiles_loader

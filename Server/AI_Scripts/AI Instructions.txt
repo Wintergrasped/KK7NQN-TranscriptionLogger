@@ -1,0 +1,11 @@
+For Result stacks to work right the scripts must be ran in the following order
+1. Transcript_Analyzer
+2. topic_extractor
+3. ai_smoother
+4. extended_profiles_loader
+
+By Default all scripts are set to run on a Local AI LLM Server on vLLM. This setup also supports using OpenAI
+To use OpenAI set OPENAI_BASE_URL or AI_BASE_URL to https://api.openai.com/ and set the model to whatever model youd like to run
+all scripts have been tested on gpt-4o-mini
+To use OpenAI you will need to get an API Key from https://platform.openai.com and set it in OPENAI_API_KEY or AI_API_KEY of the scripts.
+NOTE: OpenAI API is not free and you need to add funds to your account to use it.
